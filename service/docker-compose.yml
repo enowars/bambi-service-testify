@@ -1,6 +1,6 @@
 version: '3'
 services:
-  n0t3b00k:
+  testify:
     build: .
     # The code should be copied into the container using COPY.
     # Mount the data folder writable, so that information can be persisted across restarts.
@@ -8,4 +8,4 @@ services:
       - ./data/:/data:rw
     # Define the port mapping (external:internal port)
     ports:
-      - "2323:8000"
+      - "6597:8000"

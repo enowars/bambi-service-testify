@@ -111,7 +111,7 @@ class ThreadedServer(object):
     def listenToClient(self, client, address):
         try:
             ch = client.makefile(mode="r")
-            client.send("Welcome to the 1337 n0t3b00k!\n".encode())
+            client.send("Welcome to the 1337 testify!\n".encode())
             line = ""
             currUser = None
             while line != "exit":
@@ -197,8 +197,8 @@ get ID\n""".encode())
         client.close()
 
 if __name__ == "__main__":
-    print("n0t3b00k starting!")
+    print("testify starting!")
     service = ThreadedServer('',8000).listen()
     print("ThreadedServer listening...")
     service.join()
-    print("n0t3b00k exiting.")
+    print("testify exiting.")
