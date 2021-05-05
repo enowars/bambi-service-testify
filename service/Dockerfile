@@ -13,7 +13,7 @@ COPY entrypoint.sh /
 RUN chmod +x /entrypoint.sh
 
 # Copy our service
-COPY src/ /service/
+COPY App/src/ /service/
 
 # Change the working directory.
 WORKDIR /service/
