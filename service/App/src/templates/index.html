@@ -48,7 +48,14 @@
         <p class="lead"><em>The one and only</em> secure platform for COVID-19 rapid test appointments</p>
         <p>Using this service, you can simply make appointments for COVID-19 rapid tests in your environment! Simply
             choose a date of your preference and you're good to go!</p>
-        <input class="form-control" type="date" id="example-date-input">
+        <form action="/make_appointment" method="post">
+            <input class="form-control" type="text" name="prename" placeholder="First Name">
+            <input class="form-control" type="text" name="lastname" placeholder="Last Name">
+            <input class="form-control" type="date" name="date" id="example-date-input">
+            <div class="col text-center">
+                <input type="submit" formmethod="post" value="Submit">
+            </div>
+        </form>
     </div>
 </section>
 
