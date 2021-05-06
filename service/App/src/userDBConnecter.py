@@ -3,18 +3,26 @@ import os
 
 import mysql.connector
 
-mydb = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="root",
-    database='user_database'
-)
+mydb = None
+
+
+def get_connector():
+    global mydb
+    if mydb is None:
+        mydb = mysql.connector.connect(
+            host="testify-mysql",
+            user="root",
+            password="root",
+            database='user_database'
+        )
+    return mydb
 
 
 def create_user(username : str, password : str) -> bool:
+    connector = get_connector()
     salt = os.urandom(32)
     key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
-    cursor = mydb.cursor()
+    cursor = connector.cursor()
     sql = "INSERT INTO users(username, password, salt) VALUES (%s, %s, %s)"
     vals = (username, key, salt)
     try:
@@ -22,12 +30,13 @@ def create_user(username : str, password : str) -> bool:
     except mysql.connector.Error as err:
         print('User already in use {}'.format(err))
         return False
-    mydb.commit()
+    connector.commit()
     return True
 
 
 def check_user(username : str, password : str) -> bool:
-    cursor = mydb.cursor()
+    connector = get_connector()
+    cursor = connector.cursor()
 
     sql = "SELECT password, salt FROM users WHERE username = %s"
     vals = (username,)

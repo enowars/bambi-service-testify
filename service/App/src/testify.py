@@ -19,9 +19,6 @@ def make_appointment():
 
 @app.route('/login', methods=['POST'])
 def login():
-    print(request.form['username'])
-    print(request.form['password'])
-    print(request.form['login'])
     if request.form['login'] == 'Sign in':
         if db.check_user(request.form['username'], request.form['password']):
             return 'login success', 200
@@ -35,4 +32,4 @@ def login():
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8000)
+    app.run(host='0.0.0.0', port=8000)

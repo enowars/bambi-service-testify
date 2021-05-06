@@ -1,11 +1,14 @@
 version: '3'
 services:
   testify:
-    build: .
-    # The code should be copied into the container using COPY.
-    # Mount the data folder writable, so that information can be persisted across restarts.
-    volumes:
-      - ./data/:/data:rw
-    # Define the port mapping (external:internal port)
+    build:
+      context: App
+      dockerfile: Dockerfile
     ports:
       - "6597:8000"
+    container_name: testify
+  testify-mysql:
+    build:
+      context: mysql
+      dockerfile: Dockerfile
+
