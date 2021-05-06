@@ -11,14 +11,19 @@ mydb = mysql.connector.connect(
 )
 
 
-def create_user(username : str, password : str):
+def create_user(username : str, password : str) -> bool:
     salt = os.urandom(32)
     key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
     cursor = mydb.cursor()
     sql = "INSERT INTO users(username, password, salt) VALUES (%s, %s, %s)"
     vals = (username, key, salt)
-    cursor.execute(sql, vals)
+    try:
+        cursor.execute(sql, vals)
+    except mysql.connector.Error as err:
+        print('User already in use {}'.format(err))
+        return False
     mydb.commit()
+    return True
 
 
 def check_user(username : str, password : str) -> bool:
@@ -29,6 +34,8 @@ def check_user(username : str, password : str) -> bool:
 
     cursor.execute(sql, vals)
     result = cursor.fetchone()
+    if result is None:
+        return False
     hash_db = bytes(result[0])
     salt_db = bytes(result[1])
     hash_comp = get_hash(password, salt_db)
