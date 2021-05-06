@@ -1,6 +1,7 @@
-CREATE TABLE employees (
-first_name varchar(25),
-last_name  varchar(25),
-department varchar(15),
-email  varchar(50)
+CREATE TABLE `users` (
+	user_id INT NOT NULL AUTO_INCREMENT,
+	username VARCHAR(30) NOT NULL UNIQUE,
+	password BINARY(32) NOT NULL,
+	salt BINARY(32) NOT NULL,
+	PRIMARY KEY (`user_id`)
 );
