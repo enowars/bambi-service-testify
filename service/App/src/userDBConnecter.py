@@ -1,7 +1,5 @@
 import hashlib
 import os
-import random
-import string
 
 import mysql.connector
 

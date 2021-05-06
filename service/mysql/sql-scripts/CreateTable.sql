@@ -1,7 +1,7 @@
-CREATE TABLE `users` (
+CREATE TABLE users (
 	user_id INT NOT NULL AUTO_INCREMENT,
 	username VARCHAR(30) NOT NULL UNIQUE,
 	password BINARY(32) NOT NULL,
 	salt BINARY(32) NOT NULL,
-	PRIMARY KEY (`user_id`)
+	PRIMARY KEY (user_id)
 );
