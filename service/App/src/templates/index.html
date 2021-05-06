@@ -37,7 +37,7 @@
     </div>
 </nav>
 <!-- Header - set the background image for the header in the line below-->
-<header class="py-5 bg-image-full" style="background-image: url('static/vaccine.jpg')"><img
+<header class="py-5 bg-image-full" style="background-image: url('{{ url_for('static', filename='vaccine.jpg') }}')"><img
         class="img-fluid d-block mx-auto" src="{{ url_for('static', filename='logo_small.png') }}" alt="logo"/></header>
 
 
@@ -48,10 +48,10 @@
         <p class="lead"><em>The one and only</em> secure platform for COVID-19 rapid test appointments</p>
         <p>Using this service, you can simply make appointments for COVID-19 rapid tests in your environment! Simply
             choose a date of your preference and you're good to go!</p>
-        <form action="/make_appointment" method="post">
-            <input class="form-control" type="text" name="prename" placeholder="First Name">
-            <input class="form-control" type="text" name="lastname" placeholder="Last Name">
-            <input class="form-control" type="date" name="date" id="example-date-input">
+        <form action="/make_appointment" method="post" autocomplete="off">
+            <input class="form-control" type="text" name="prename" placeholder="First Name" autocomplete="off">
+            <input class="form-control" type="text" name="lastname" placeholder="Last Name" autocomplete="off">
+            <input class="form-control" type="date" name="date" id="example-date-input" autocomplete="off">
             <div class="col text-center">
                 <input type="submit" formmethod="post" value="Submit">
             </div>
@@ -77,16 +77,15 @@
                 </div>
 
                 <!-- Login Form -->
-                <form>
-                    <input type="text" id="login" class="fadeIn second" name="login" placeholder="username">
-                    <input type="password" id="password" class="fadeIn third" name="login" placeholder="password">
-                    <input type="submit" class="fadeIn fourth" value="Log In">
+                <form action="/login" method="post" autocomplete="off">
+                    <input type="text" id="login" class="fadeIn second" name="username" placeholder="username" autocomplete="off">
+                    <input type="password" id="password" class="fadeIn third" name="password" placeholder="password" autocomplete="off">
+                    <input type="submit" class="fadeIn fourth" name="login" value="Sign in">
+                    <div id="formFooter">
+                        <input type="submit" class="fadeIn fourth" name="login" value="Sign up">
+                    </div>
                 </form>
 
-                <!-- Create Account -->
-                <div id="formFooter">
-                    <a class="underlineHover" href="#">Create Account</a>
-                </div>
 
             </div>
         </div>
