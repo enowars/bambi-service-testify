@@ -23,6 +23,9 @@ class TestDBCOnnector(unittest.TestCase):
         self.assertTrue(db.create_user(user, "secretpass"))
         self.assertFalse(db.create_user(user, "secretpass"))
 
+    def setUp(self) -> None:
+        db.set_hostname("localhost")
+
 
 if __name__ == '__main__':
     unittest.main()

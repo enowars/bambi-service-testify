@@ -4,13 +4,15 @@ import os
 import mysql.connector
 
 mydb = None
+hostname = "testify-mysql"
 
 
 def get_connector():
     global mydb
+    global hostname
     if mydb is None:
         mydb = mysql.connector.connect(
-            host="testify-mysql",
+            host=hostname,
             user="root",
             password="root",
             database='user_database'
@@ -18,7 +20,7 @@ def get_connector():
     return mydb
 
 
-def create_user(username : str, password : str) -> bool:
+def create_user(username: str, password: str) -> bool:
     connector = get_connector()
     salt = os.urandom(32)
     key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
@@ -34,7 +36,12 @@ def create_user(username : str, password : str) -> bool:
     return True
 
 
-def check_user(username : str, password : str) -> bool:
+def set_hostname(host: str):  # for debugging purposes
+    global hostname
+    hostname = host
+
+
+def check_user(username: str, password: str) -> bool:
     connector = get_connector()
     cursor = connector.cursor()
 
@@ -53,9 +60,12 @@ def check_user(username : str, password : str) -> bool:
 
 
 def get_hash(password, salt):
-    return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    if checkASCII(password):
+        return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    else:
+        print("error! password not valid ascii!")
+        return password
 
 
-
-
-
+def checkASCII(password: str):
+    return all(32 < ord(c) < 127 for c in password)

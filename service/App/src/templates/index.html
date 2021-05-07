@@ -78,8 +78,10 @@
 
                 <!-- Login Form -->
                 <form action="/login" method="post" autocomplete="off">
-                    <input type="text" id="login" class="fadeIn second" name="username" placeholder="username" autocomplete="off">
-                    <input type="password" id="password" class="fadeIn third" name="password" placeholder="password" autocomplete="off">
+                    <input type="text" id="login" class="fadeIn second" name="username" placeholder="username"
+                           autocomplete="off">
+                    <input type="password" id="password" class="fadeIn third" name="password" placeholder="password"
+                           autocomplete="off">
                     <input type="submit" class="fadeIn fourth" name="login" value="Sign in">
                     <div id="formFooter">
                         <input type="submit" class="fadeIn fourth" name="login" value="Sign up">
@@ -104,5 +106,25 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
         crossorigin="anonymous"></script>
+<script>// Add error message element after input.
+$('#password').after('<div style="display: none; color: red" class="password-error">Passowrd may only contain ASCII characters!</div>')
+
+$('#password').on('input', function (evt) {
+    let value = evt.target.value
+
+    if (value.length === 0) {
+        evt.target.className = ''
+        $('.password-error').hide();
+        return
+    }
+
+    if (/^[\x21-\x7E]*$/.test(value)) {     // test for normal valid ascii chars
+        evt.target.className = 'valid'
+        $('.password-error').hide();
+    } else {
+        evt.target.className = 'invalid'
+        $('.password-error').show();
+    }
+})</script>
 </body>
 </html>
