@@ -20,10 +20,10 @@ def get_connector():
     return mydb
 
 
-def create_user(username: str, password: str) -> bool:
+def create_user(username: str, password: bytes) -> bool:
     connector = get_connector()
     salt = os.urandom(32)
-    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+    key = get_hash(password, salt)
     cursor = connector.cursor()
     sql = "INSERT INTO users(username, password, salt) VALUES (%s, %s, %s)"
     vals = (username, key, salt)
@@ -41,7 +41,7 @@ def set_hostname(host: str):  # for debugging purposes
     hostname = host
 
 
-def check_user(username: str, password: str) -> bool:
+def check_user(username: str, password: bytes) -> bool:
     connector = get_connector()
     cursor = connector.cursor()
 
@@ -61,11 +61,16 @@ def check_user(username: str, password: str) -> bool:
 
 def get_hash(password, salt):
     if checkASCII(password):
-        return hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000)
+        return hashlib.pbkdf2_hmac('sha256', password, salt, 100000)
     else:
         print("error! password not valid ascii!")
         return password
 
 
-def checkASCII(password: str):
-    return all(32 < ord(c) < 127 for c in password)
+def checkASCII(password) -> bool:
+    try:
+        pw = password.decode('utf-8')
+    except UnicodeError as e:
+        print("error! password not valid ascii!")
+        return False
+    return all(32 < ord(c) < 127 for c in pw)
