@@ -16,7 +16,7 @@ class TestPassTheHashVuln(unittest.TestCase):
         obj = {
             'username': 'HNYDUW0MHB',
             'password': base64.b64encode(bytes.fromhex('3B89BCF90E89EDCDED3A5A2C9EF09B42E4DC8C6546684673D94075C54F31B6B4')).decode('ascii'),
-            'login': 'Sign in'
+            'login': 'signin'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req.status_code)
@@ -25,7 +25,7 @@ class TestPassTheHashVuln(unittest.TestCase):
         obj = {
             'username': 'HNYDUW0MHB',
             'password': base64.b64encode(bytes.fromhex('3B89BCF90E89EDCDED3A5A2C9EF09B42E4DC8C6546684673D94575C54F31B6B4')).decode('ascii'),
-            'login': 'Sign in'
+            'login': 'signin'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(401, req.status_code)
@@ -37,7 +37,7 @@ class TestSimpleLogin(unittest.TestCase):
         obj = {
             'username': user,
             'password': base64.b64encode(b'mysecretpass').decode('ascii'),
-            'login': 'Sign up'
+            'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req.status_code)
@@ -47,11 +47,11 @@ class TestSimpleLogin(unittest.TestCase):
         obj = {
             'username': user,
             'password': base64.b64encode(b'mysecretpass').decode('ascii'),
-            'login': 'Sign up'
+            'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req.status_code)
-        obj['login'] = 'Sign in'
+        obj['login'] = 'signin'
         req2 = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req2.status_code)
         obj['password'] = base64.b64encode(b'mysecretPass').decode('ascii')
@@ -63,7 +63,7 @@ class TestSimpleLogin(unittest.TestCase):
         obj = {
             'username': user,
             'password': base64.b64encode(b'mysecretpass').decode('ascii'),
-            'login': 'Sign up'
+            'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req.status_code)

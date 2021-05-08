@@ -77,18 +77,25 @@
                 </div>
 
                 <!-- Login Form -->
-                <form action="/login" method="post" autocomplete="off">
-                    <input type="text" id="login" class="fadeIn second" name="username" placeholder="username"
+                <form class="login" name="login_form" action="/login" method="post" autocomplete="off">
+
+                    <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+                        <input type="radio" value="signin" class="btn-check" name="login" id="radio_signin"
+                               autocomplete="off"
+                               checked>
+                        <label class="btn btn-outline-primary" for="radio_signin">Sign in</label>
+
+                        <input type="radio" value="signup" class="btn-check" name="login" id="radio_signup"
+                               autocomplete="off">
+                        <label class="btn btn-outline-primary" for="radio_signup">Sign up</label>
+                    </div>
+
+                    <input type="text" id="user_login" class="fadeIn second" name="username" placeholder="username"
                            autocomplete="off">
                     <input type="password" id="password" class="fadeIn third" name="password" placeholder="password"
                            autocomplete="off">
-                    <input type="submit" class="fadeIn fourth" name="login" value="Sign in">
-                    <div id="formFooter">
-                        <input type="submit" class="fadeIn fourth" name="login" value="Sign up">
-                    </div>
+                    <input type="submit" id="login" class="fadeIn fourth" name="login" value="Sign in">
                 </form>
-
-
             </div>
         </div>
     </div>
@@ -107,9 +114,10 @@
         integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
         crossorigin="anonymous"></script>
 <script>// Add error message element after input.
-$('#password').after('<div style="display: none; color: red" class="password-error">Passowrd may only contain ASCII characters!</div>')
+let pw = $('#password')
+pw.after('<div style="display: none; color: red" class="password-error">Passowrd may only contain ASCII characters!</div>')
 
-$('#password').on('input', function (evt) {
+pw.on('input', function (evt) {
     let value = evt.target.value
 
     if (value.length === 0) {
@@ -125,6 +133,14 @@ $('#password').on('input', function (evt) {
         evt.target.className = 'invalid'
         $('.password-error').show();
     }
-})</script>
+})
+$('form[name="login_form"]').one('submit', function (e) {
+    e.preventDefault();
+    let pw = document.getElementById('password').value
+    document.getElementById('password').value = btoa(pw)
+
+    $(this).submit();
+});
+</script>
 </body>
 </html>
