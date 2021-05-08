@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import userDBConnecter as db
+import base64
 
 app = Flask(__name__)
 
@@ -19,13 +20,13 @@ def make_appointment():
 
 @app.route('/login', methods=['POST'])
 def login():
-    if request.form['login'] == 'Sign in':
-        if db.check_user(request.form['username'], request.form['password']):
+    if request.form['login'] == 'signin':
+        if db.check_user(request.form['username'], base64.b64decode(str(request.form['password']).encode('ascii'))):
             return 'login success', 200
         else:
             return 'login failure', 401
-    elif request.form['login'] == 'Sign up':
-        if db.create_user(request.form['username'], request.form['password']):
+    elif request.form['login'] == 'signup':
+        if db.create_user(request.form['username'], base64.b64decode(str(request.form['password']).encode('ascii'))):
             return 'login success', 200
         else:
             return 'login failure', 401

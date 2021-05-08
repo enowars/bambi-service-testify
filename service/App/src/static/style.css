@@ -143,6 +143,23 @@ input[type=text], input[type=password]:placeholder {
   color: #cccccc;
 }
 
+input.valid {
+  border: 3px solid green;
+}
+
+input.invalid {
+  border: 1px solid red;
+}
+
+input.invalid + .password-error {
+  display: initial;
+}
+
+.password-error {
+  display: none;
+}
+
+
 
 
 /* ANIMATIONS */
