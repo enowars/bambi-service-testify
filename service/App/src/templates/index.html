@@ -43,7 +43,7 @@
 <header class="py-5 bg-image-full" style="background-image: url('{{ url_for('static', filename='vaccine.jpg') }}')"><img
         class="img-fluid d-block mx-auto" src="{{ url_for('static', filename='logo_small.png') }}" alt="logo"/></header>
 
-<!-- Content section-->
+<!-- Welcome section-->
 <section class="py-5">
     <div class="container">
         <h1>Welcome to the Testify Service</h1>
@@ -54,13 +54,20 @@
     </div>
 </section>
 
-<!-- Content section-->
+<!-- Login section-->
 <section id="loginsection" class="py-5">
     <div class="container">
         <h1>Log in</h1>
         <p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
         <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid, suscipit, rerum quos facilis repellat
             architecto commodi officia atque nemo facere eum non illo voluptatem quae delectus odit vel itaque amet.</p>
+        <div class="inserts">
+            {% if inserts %}
+            {% for i in inserts %}
+            {% include i %}
+            {% endfor %}
+            {% endif %}
+        </div>
         <div class="wrapper fadeInDown">
             <div id="formContent">
                 <!-- Tabs Titles -->

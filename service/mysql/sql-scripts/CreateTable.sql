@@ -5,3 +5,18 @@ CREATE TABLE users (
 	salt BINARY(32) NOT NULL,
 	PRIMARY KEY (user_id)
 );
+
+CREATE TABLE sessions (
+    session_id VARCHAR(36) NOT NULL,
+    user_id INT,
+    PRIMARY KEY (session_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE appointments (
+    appointment_id INT NOT NULL AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    extra_info VARCHAR(500),
+    PRIMARY KEY (appointment_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
