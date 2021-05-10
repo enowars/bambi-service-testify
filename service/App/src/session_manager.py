@@ -1,24 +1,43 @@
 import mysql.connector
 import uuid
 
-mydb = None
 hostname = "testify-mysql"
 
 
 def get_connector():
-    global mydb
     global hostname
-    if mydb is None:
-        mydb = mysql.connector.connect(
-            host=hostname,
-            user="root",
-            password="root",
-        )
+    mydb = mysql.connector.connect(
+        host=hostname,
+        user="root",
+        password="root",
+    )
     return mydb
 
 
 def get_new_session_id():
     return uuid.uuid4()
+
+
+def check_session_id(session_id):
+    connector = get_connector()
+    cursor = connector.cursor()
+    sql = "SELECT * FROM user_database.sessions WHERE session_id = %s"
+    vals = (session_id,)
+    cursor.execute(sql, vals)
+    result = cursor.fetchone()
+    return True if result else False
+
+
+def delete_session(session_id):
+    connector = get_connector()
+    cursor = connector.cursor()
+    sql = "DELETE FROM user_database.sessions WHERE session_id = %s"
+    vals = (session_id,)
+    try:
+        cursor.execute(sql, vals)
+        connector.commit()
+    except mysql.connector.Error as err:
+        print('session to delete not found: {}'.format(err))
 
 
 def create_session(username: str) -> uuid:

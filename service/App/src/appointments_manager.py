@@ -1,11 +1,9 @@
 import mysql.connector
 
-mydb = None
 hostname = "testify-mysql"
 
 
 def get_connector():
-    global mydb
     global hostname
     mydb = mysql.connector.connect(
         host=hostname,
@@ -53,8 +51,6 @@ def get_appointments(session_id: str):
     result = cursor.fetchall()
     if result is None:
         print('no appointments found')
-    else:
-        print(result)
     return get_card_format(result)
 
 

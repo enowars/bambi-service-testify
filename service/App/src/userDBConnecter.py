@@ -3,19 +3,16 @@ import os
 
 import mysql.connector
 
-mydb = None
 hostname = "testify-mysql"
 
 
 def get_connector():
-    global mydb
     global hostname
-    if mydb is None:
-        mydb = mysql.connector.connect(
-            host=hostname,
-            user="root",
-            password="root",
-        )
+    mydb = mysql.connector.connect(
+        host=hostname,
+        user="root",
+        password="root",
+    )
     return mydb
 
 

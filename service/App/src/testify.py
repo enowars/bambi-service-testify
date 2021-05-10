@@ -58,9 +58,24 @@ def appointments():
     session_id = request.cookies.get('sessionID')
 
     if username and session_id:
-        cards = am.get_appointments(session_id)
+        if sm.check_session_id(session_id):
+            cards = am.get_appointments(session_id)
+            return render_template('appointments.html', user=username, cards=cards), 200
+        else:
+            return redirect(url_for('index'))
+    else:
+        return redirect(url_for('index'))
 
-        return render_template('appointments.html', user=username, cards=cards), 200
+
+@app.route('/logout')
+def logout():
+    username = request.cookies.get('username')
+    session_id = request.cookies.get('sessionID')
+    if username and session_id:
+        resp = make_response(redirect(url_for('index')))
+        resp.delete_cookie('sessionID')
+        resp.delete_cookie('username')
+        return resp, 302
 
 
 if __name__ == '__main__':
