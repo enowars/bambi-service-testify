@@ -18,7 +18,8 @@ CREATE TABLE appointments (
     user_id INT NOT NULL,
     name VARCHAR(100) NOT NULL,
     extra_info VARCHAR(500),
-    date DATETIME NOT NULL,
+    date DATE NOT NULL,
+    time TIME NOT NULL,
     PRIMARY KEY (appointment_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );

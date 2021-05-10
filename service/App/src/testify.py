@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, make_response, redirect, url_for
 import userDBConnecter as db
 import session_manager as sm
+import appointments_manager as am
 import base64
 import bleach
 
@@ -17,7 +18,17 @@ def make_appointment():
     print(request.form['prename'])
     print(request.form['lastname'])
     print(request.form['date'])
-    return 'ok', 200
+    print(request.form['time'])
+    session_id = request.cookies.get('sessionID')
+    if session_id:
+        appointment = {
+            'name': request.form['prename'] + ' ' + request.form['lastname'],
+            'extra_info': 'empty',
+            'date': request.form['date'],
+            'time': request.form['time']
+        }
+        am.set_appointment(session_id, appointment)
+    return redirect(url_for('appointments'))
 
 
 @app.route('/login', methods=['POST'])
@@ -48,6 +59,7 @@ def login():
 @app.route('/appointments')
 def appointments():
     username = request.cookies.get('username')
+    session_id = request.cookies.get('sessionID')
     cards = [{'name': 'HI',
               'address': 'AD',
               'date': '23.23.23'},
@@ -61,7 +73,8 @@ def appointments():
               'address': 'AD',
               'date': '23.23.23'}
              ]
-    return render_template('appointments.html', user=username, cards=cards), 200
+    if username and session_id:
+        return render_template('appointments.html', user=username, cards=cards), 200
 
 
 if __name__ == '__main__':

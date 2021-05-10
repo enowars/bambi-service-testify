@@ -36,8 +36,8 @@ def set_appointment(session_id: str, appointment):
     if user_id != -1:
         connector = get_connector()
         cursor = connector.cursor()
-        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date) VALUES (%d, %s, %s, %s)"
-        vals = (appointment['user_id'], appointment['name'], appointment['extra_info']. appointment['date'])
+        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, time) VALUES (%s, %s, %s, %s, %s)"
+        vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'], appointment['time'])
         try:
             cursor.execute(sql, vals)
         except mysql.connector.Error as err:
@@ -45,4 +45,5 @@ def set_appointment(session_id: str, appointment):
         connector.commit()
 
 
-def get_appointment():
+def get_appointments(session_id: str):
+    user_id = get_user_id_for_session_id(session_id)
