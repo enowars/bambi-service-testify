@@ -19,7 +19,7 @@ class TestPassTheHashVuln(unittest.TestCase):
             'login': 'signin'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
-        self.assertEqual(200, req.status_code)
+        self.assertEqual(302, req.status_code)
 
     def test_pth(self):
         obj = {
@@ -40,7 +40,7 @@ class TestSimpleLogin(unittest.TestCase):
             'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
-        self.assertEqual(200, req.status_code)
+        self.assertEqual(302, req.status_code)
 
     def test_check_user(self):
         user = get_random_user()
@@ -50,10 +50,10 @@ class TestSimpleLogin(unittest.TestCase):
             'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
-        self.assertEqual(200, req.status_code)
+        self.assertEqual(302, req.status_code)
         obj['login'] = 'signin'
         req2 = rq.post('http://localhost:6597/login', data=obj)
-        self.assertEqual(200, req2.status_code)
+        self.assertEqual(302, req2.status_code)
         obj['password'] = base64.b64encode(b'mysecretPass').decode('ascii')
         req3 = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(401, req3.status_code)
@@ -66,7 +66,7 @@ class TestSimpleLogin(unittest.TestCase):
             'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
-        self.assertEqual(200, req.status_code)
+        self.assertEqual(302, req.status_code)
         req2 = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(401, req2.status_code)
 

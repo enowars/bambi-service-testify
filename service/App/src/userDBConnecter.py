@@ -59,12 +59,12 @@ def check_user(username: str, password: bytes) -> bool:
     return True if hash_comp == hash_db else False
 
 
-def get_hash(password, salt):
-    if checkASCII(password):
-        return hashlib.pbkdf2_hmac('sha256', password, salt, 100000)
+def get_hash(string, salt):
+    if checkASCII(string):
+        return hashlib.pbkdf2_hmac('sha256', string, salt, 100000)
     else:
         print("error! password not valid ascii!")
-        return password
+        return string
 
 
 def checkASCII(password) -> bool:
