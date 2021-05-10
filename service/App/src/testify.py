@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, redirect, url_for
 import userDBConnecter as db
 import session_manager as sm
 import base64
+import bleach
 
 app = Flask(__name__)
 
@@ -25,26 +26,28 @@ def login():
     password = request.form['password']
     if request.form['login'] == 'signin':
         if db.check_user(username, base64.b64decode(str(password).encode('ascii'))):
-            resp = make_response(render_template('appointments.html', user=request.form['username']))
+            resp = make_response(redirect(url_for('appointments')))
             session_id = sm.create_session(username)
             resp.set_cookie('sessionID', str(session_id))
-            return resp, 200
+            resp.set_cookie('username', bleach.clean(username))
+            return resp, 302
         else:
             return render_template('index.html', inserts=['login_warning.html']), 401
     elif request.form['login'] == 'signup':
         if db.create_user(username, base64.b64decode(str(password).encode('ascii'))):
-            resp = make_response(render_template('appointments.html', user=username))
+            resp = make_response(redirect(url_for('appointments')))
             session_id = sm.create_session(username)
             resp.set_cookie('sessionID', str(session_id))
-            return resp, 200
+            resp.set_cookie('username', bleach.clean(username))
+            return resp, 302
         else:
             return render_template('index.html', inserts=['login_warning.html']), 401
 
 
 @app.route('/appointments')
 def appointments():
-    # TODO: check cookie
-    return render_template('appointments.html', user=request.form['username']), 200
+    username = request.cookies.get('username')
+    return render_template('appointments.html', user=username), 200
 
 
 def create_new_cookie():
