@@ -15,10 +15,6 @@ def index():
 
 @app.route('/make_appointment', methods=['POST'])
 def make_appointment():
-    print(request.form['prename'])
-    print(request.form['lastname'])
-    print(request.form['date'])
-    print(request.form['time'])
     session_id = request.cookies.get('sessionID')
     if session_id:
         appointment = {
@@ -60,20 +56,10 @@ def login():
 def appointments():
     username = request.cookies.get('username')
     session_id = request.cookies.get('sessionID')
-    cards = [{'name': 'HI',
-              'address': 'AD',
-              'date': '23.23.23'},
-             {'name': 'HI',
-              'address': 'AD',
-              'date': '23.23.23'},
-             {'name': 'HI',
-              'address': 'AD',
-              'date': '23.23.23'},
-             {'name': 'HI',
-              'address': 'AD',
-              'date': '23.23.23'}
-             ]
+
     if username and session_id:
+        cards = am.get_appointments(session_id)
+
         return render_template('appointments.html', user=username, cards=cards), 200
 
 

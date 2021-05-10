@@ -15,7 +15,6 @@ def get_connector():
             host=hostname,
             user="root",
             password="root",
-            database='user_database'
         )
     return mydb
 
@@ -25,7 +24,7 @@ def create_user(username: str, password: bytes) -> bool:
     salt = os.urandom(32)
     key = get_hash(password, salt)
     cursor = connector.cursor()
-    sql = "INSERT INTO users(username, password, salt) VALUES (%s, %s, %s)"
+    sql = "INSERT INTO user_database.users(username, password, salt) VALUES (%s, %s, %s)"
     vals = (username, key, salt)
     try:
         cursor.execute(sql, vals)
@@ -45,7 +44,7 @@ def check_user(username: str, password: bytes) -> bool:
     connector = get_connector()
     cursor = connector.cursor()
 
-    sql = "SELECT password, salt FROM users WHERE username = %s"
+    sql = "SELECT password, salt FROM user_database.users WHERE username = %s"
     vals = (username,)
 
     cursor.execute(sql, vals)

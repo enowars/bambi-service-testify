@@ -13,7 +13,6 @@ def get_connector():
             host=hostname,
             user="root",
             password="root",
-            database='user_database'
         )
     return mydb
 
@@ -43,7 +42,7 @@ def create_session(username: str) -> uuid:
 def get_user_id_for_username(username: str) -> int:
     connector = get_connector()
     cursor = connector.cursor()
-    sql = "SELECT user_id FROM user_database.users WHERE username = %s"
+    sql = "SELECT user_database.users.user_id FROM user_database.users WHERE username = %s"
     vals = (username,)
     cursor.execute(sql, vals)
     result = cursor.fetchone()
