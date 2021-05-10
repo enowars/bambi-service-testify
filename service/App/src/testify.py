@@ -22,7 +22,7 @@ def make_appointment():
 def login():
     if request.form['login'] == 'signin':
         if db.check_user(request.form['username'], base64.b64decode(str(request.form['password']).encode('ascii'))):
-            return 'login success', 200
+            return render_template('index.html', user=request.form['username']), 200
         else:
             return 'login failure', 401
     elif request.form['login'] == 'signup':
@@ -31,6 +31,9 @@ def login():
         else:
             return 'login failure', 401
 
+
+def create_new_cookie():
+    pass
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
