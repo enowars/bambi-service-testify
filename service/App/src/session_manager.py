@@ -1,4 +1,5 @@
-import uuid, mysql.connector
+import mysql.connector
+import uuid
 
 mydb = None
 hostname = "testify-mysql"
