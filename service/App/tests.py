@@ -19,9 +19,9 @@ class TestPassTheHashVuln(unittest.TestCase):
             'login': 'signin'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
-        self.assertEqual(302, req.status_code)
+        self.assertEqual(200, req.status_code)
 
-    def test_pth(self):
+    def test_pth2(self):
         obj = {
             'username': 'HNYDUW0MHB',
             'password': base64.b64encode(bytes.fromhex('3B89BCF90E89EDCDED3A5A2C9EF09B42E4DC8C6546684673D94575C54F31B6B4')).decode('ascii'),
