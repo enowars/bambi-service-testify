@@ -3,6 +3,7 @@ CREATE TABLE users (
 	username VARCHAR(30) NOT NULL UNIQUE,
 	password BINARY(32) NOT NULL,
 	salt BINARY(32) NOT NULL,
+	email VARCHAR(255),
 	PRIMARY KEY (user_id)
 );
 

@@ -78,5 +78,10 @@ def logout():
         return resp, 302
 
 
+@app.route('/restore_username')
+def restore_username():
+    pass
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)
