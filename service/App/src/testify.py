@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, make_response, redirect, url_
 import userDBConnecter as db
 import session_manager as sm
 import appointments_manager as am
+import forgotUsername as fu
 import base64
 import bleach
 
@@ -90,7 +91,16 @@ def logout():
 
 @app.route('/restore_username')
 def restore_username():
-    pass
+    return render_template('restore_username.html')
+
+
+@app.route('/restore_username', methods=['POST'])
+def restore_username_POST():
+    email = request.form.get('email')
+    if email:
+        return render_template('restore_username.html', inserts=['username_success.html'],
+                               username=fu.get_username_for_email(email))
+
 
 
 if __name__ == '__main__':
