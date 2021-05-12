@@ -98,8 +98,13 @@ def restore_username():
 def restore_username_POST():
     email = request.form.get('email')
     if email:
-        return render_template('restore_username.html', inserts=['username_success.html'],
-                               username=fu.get_username_for_email(email))
+        username = fu.get_username_for_email(email)
+        if username:
+            return render_template('restore_username.html', inserts=['username_success.html'],
+                                   username=fu.get_username_for_email(email))
+        else:
+            return render_template('restore_username.html', inserts=['username_failed.html'],
+                                   email=email)
 
 
 
