@@ -37,6 +37,7 @@ class TestSimpleLogin(unittest.TestCase):
         obj = {
             'username': user,
             'password': base64.b64encode(b'mysecretpass').decode('ascii'),
+            'email': user + '@' + user + '.de',
             'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
@@ -47,6 +48,7 @@ class TestSimpleLogin(unittest.TestCase):
         obj = {
             'username': user,
             'password': base64.b64encode(b'mysecretpass').decode('ascii'),
+            'email': user + '@' + user + '.de',
             'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
@@ -63,6 +65,7 @@ class TestSimpleLogin(unittest.TestCase):
         obj = {
             'username': user,
             'password': base64.b64encode(b'mysecretpass').decode('ascii'),
+            'email': user + '@' + user + '.de',
             'login': 'signup'
         }
         req = rq.post('http://localhost:6597/login', data=obj)

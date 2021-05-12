@@ -16,12 +16,17 @@ def index():
 @app.route('/make_appointment', methods=['POST'])
 def make_appointment():
     session_id = request.cookies.get('sessionID')
-    if session_id:
+    prename = request.form.get('prename')
+    lastname = request.form.get('lastname')
+    date = request.form.get('date')
+    time = request.form.get('time')
+
+    if session_id and prename and lastname and date and time:
         appointment = {
-            'name': request.form['prename'] + ' ' + request.form['lastname'],
+            'name': prename + ' ' + lastname,
             'extra_info': 'empty',
-            'date': request.form['date'],
-            'time': request.form['time']
+            'date': date,
+            'time': time
         }
         am.set_appointment(session_id, appointment)
     return redirect(url_for('appointments'))
@@ -29,11 +34,14 @@ def make_appointment():
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
-    email = request.form['email']
-    if username and password:
-        if request.form['login'] == 'signin':
+    request.form.get('username')
+    username = request.form.get('username')
+    password = request.form.get('password')
+    login_type = request.form.get('login')
+    email = request.form.get('email')
+
+    if username and password and login_type:
+        if login_type == 'signin':
             if db.check_user(username, base64.b64decode(str(password).encode('ascii'))):
                 resp = make_response(redirect(url_for('appointments')))
                 session_id = sm.create_session(username)
@@ -42,7 +50,7 @@ def login():
                 return resp, 302
             else:
                 return render_template('index.html', inserts=['login_warning.html']), 401
-        elif request.form['login'] == 'signup':
+        elif login_type == 'signup':
             if email:
                 if db.create_user(username, base64.b64decode(str(password).encode('ascii')), email):
                     resp = make_response(redirect(url_for('appointments')))
@@ -86,4 +94,4 @@ def restore_username():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=True) # TODO: remove debug later
