@@ -31,7 +31,8 @@ def make_appointment():
 def login():
     username = request.form['username']
     password = request.form['password']
-    if username is not None and password is not None:
+    email = request.form['email']
+    if username and password:
         if request.form['login'] == 'signin':
             if db.check_user(username, base64.b64decode(str(password).encode('ascii'))):
                 resp = make_response(redirect(url_for('appointments')))
@@ -42,14 +43,15 @@ def login():
             else:
                 return render_template('index.html', inserts=['login_warning.html']), 401
         elif request.form['login'] == 'signup':
-            if db.create_user(username, base64.b64decode(str(password).encode('ascii'))):
-                resp = make_response(redirect(url_for('appointments')))
-                session_id = sm.create_session(username)
-                resp.set_cookie('sessionID', str(session_id))
-                resp.set_cookie('username', bleach.clean(username))
-                return resp, 302
-            else:
-                return render_template('index.html', inserts=['login_warning.html']), 401
+            if email:
+                if db.create_user(username, base64.b64decode(str(password).encode('ascii')), email):
+                    resp = make_response(redirect(url_for('appointments')))
+                    session_id = sm.create_session(username)
+                    resp.set_cookie('sessionID', str(session_id))
+                    resp.set_cookie('username', bleach.clean(username))
+                    return resp, 302
+                else:
+                    return render_template('index.html', inserts=['login_warning.html']), 401
 
 
 @app.route('/appointments')
