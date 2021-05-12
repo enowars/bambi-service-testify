@@ -92,11 +92,13 @@
                         <label class="btn btn-outline-primary" for="radio_signup">Sign up</label>
                     </div>
 
+                    <input type="email" id="email" class="fadeIn email" name="email" placeholder="email"
+                           autocomplete="off" style="display: none">
                     <input type="text" id="user_login" class="fadeIn second" name="username" placeholder="username"
-                           autocomplete="off">
+                           autocomplete="off" required>
                     <input type="password" id="password" class="fadeIn third" name="password" placeholder="password"
-                           autocomplete="off">
-                    <input type="submit" id="login" class="fadeIn fourth" name="login" value="Sign in">
+                           autocomplete="off" required>
+                    <input type="submit" id="login" class="fadeIn fourth" name="login" value="Login">
                 </form>
 
                 <!-- Forgot Username -->
@@ -149,6 +151,29 @@ $('form[name="login_form"]').one('submit', function (e) {
 
     $(this).submit();
 });
+</script>
+<script>
+    $('input:radio[name="login"]').change(
+        function ()
+        {
+           if($(this).is(':checked'))
+           {
+               let email = $('input[type="email"]')
+               if ($(this).val() === "signup")
+               {
+                   email.show()
+                   email.prop('required', true)
+               }
+               else if (($(this).val() === "signin"))
+               {
+                   email.hide()
+                   email.val('')
+                   email.prop('required', false)
+               }
+
+           }
+           console.log($(this).val())
+        });
 </script>
 </body>
 </html>
