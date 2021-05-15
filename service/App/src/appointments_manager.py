@@ -1,3 +1,5 @@
+import os.path
+
 import mysql.connector
 from werkzeug.utils import secure_filename
 
@@ -36,7 +38,7 @@ def set_appointment(session_id: str, appointment):
         sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename) " \
               "VALUES (%s, %s, %s, %s, %s)"
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
-                appointment['time'], secure_filename(appointment['filename']) if appointment['filename'] else None)
+                appointment['time'], get_path(appointment['filename']))
         try:
             cursor.execute(sql, vals)
         except mysql.connector.Error as err:
@@ -57,6 +59,16 @@ def get_appointments(session_id: str):
     return get_card_format(result)
 
 
+def get_path(path: str):
+    if path:
+        basedir = os.path.abspath("static/user_data/")
+        path_comp = 'static/user_data/images/' + path
+        matchpath = os.path.abspath(path_comp)
+        if matchpath.startswith(basedir) and basedir == os.path.commonpath((basedir, matchpath)):
+            return 'user_data/images/' + path
+    return None
+
+
 def get_card_format(result):
     cards = []
     for r in result:
@@ -64,6 +76,6 @@ def get_card_format(result):
                 'name': r[0],
                 'info': r[1],
                 'date': r[2].strftime('%d.%m.%Y %H:%M'),
-                'filename': 'images/' + r[3] if r[3] else 'card.jpg'
+                'filename': r[3] if r[3] else 'card.jpg'
             })
     return cards
