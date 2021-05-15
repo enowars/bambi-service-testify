@@ -111,7 +111,6 @@ def restore_username_POST():
 
 @app.route('/get_id<appointment_id>')
 def get_id(appointment_id):
-    # TODO: return file to ID of appointment using session
     session_id = request.cookies.get('sessionID')
     if session_id and appointment_id:
         path = am.get_id_file(session_id, appointment_id)

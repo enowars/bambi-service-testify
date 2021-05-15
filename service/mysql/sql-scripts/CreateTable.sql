@@ -27,3 +27,4 @@ CREATE TABLE appointments (
 
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM usertable_user;
 GRANT SELECT ON user_database.users to usertable_user@'%';
+ALTER USER 'usertable_user'@'%' IDENTIFIED WITH mysql_native_password BY 'userpass';
