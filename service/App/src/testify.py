@@ -5,13 +5,15 @@ import appointments_manager as am
 import forgotUsername as fu
 import base64
 import bleach
+import online_users as ou
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    users = ou.get_online_users()
+    return render_template("index.html", online_users='  -  '.join(users))
 
 
 @app.route('/make_appointment', methods=['POST'])
@@ -117,6 +119,8 @@ def get_id(appointment_id):
         if path:
             return send_file(path, as_attachment=True)
     return "session and appointment id do not match or no ID uploaded!!", 403
+
+
 
 
 if __name__ == '__main__':

@@ -46,7 +46,7 @@ def send_file_appointment(filename):
     return url, cookies
 
 
-def convert(test_str):
+def tuple_string_to_list(test_str):
     res = []
     temp = []
     for token in test_str.split(","):
@@ -100,19 +100,16 @@ class TestDirectoryTraversal(unittest.TestCase):
 
         download = rq.get(url, allow_redirects=True, cookies=cookies)
         sql_string = download.content[27:-2].decode('ascii')
-        user_list = convert(sql_string)
-        print(user_list)
+        user_list = tuple_string_to_list(sql_string)
         user = (user_list[0][1])[1:-1]
         hash = (user_list[0][2])[2:]
         obj = {
             'username': user,
-            'password': base64.b64encode(
-                bytes.fromhex(hash)).decode('ascii'),
+            'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
             'login': 'signin'
         }
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req.status_code)
-
 
 
 class TestSimpleLogin(unittest.TestCase):
