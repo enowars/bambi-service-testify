@@ -21,13 +21,15 @@ def make_appointment():
     lastname = request.form.get('lastname')
     date = request.form.get('date')
     time = request.form.get('time')
+    file = request.files.get('image')
 
     if session_id and prename and lastname and date and time:
         appointment = {
             'name': prename + ' ' + lastname,
             'extra_info': 'empty',
             'date': date,
-            'time': time
+            'time': time,
+            'filename': file.filename if file else None
         }
         am.set_appointment(session_id, appointment)
     return redirect(url_for('appointments'))

@@ -1,4 +1,5 @@
 import mysql.connector
+from werkzeug.utils import secure_filename
 
 hostname = "testify-mysql"
 
@@ -32,8 +33,10 @@ def set_appointment(session_id: str, appointment):
     if user_id != -1:
         connector = get_connector()
         cursor = connector.cursor()
-        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date) VALUES (%s, %s, %s, %s)"
-        vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' + appointment['time'])
+        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename) " \
+              "VALUES (%s, %s, %s, %s, %s)"
+        vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
+                appointment['time'], secure_filename(appointment['filename']) if appointment['filename'] else None)
         try:
             cursor.execute(sql, vals)
         except mysql.connector.Error as err:
