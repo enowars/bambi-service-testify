@@ -1,5 +1,6 @@
 import hashlib
 import os
+import subprocess
 
 import mysql.connector
 
@@ -29,6 +30,8 @@ def create_user(username: str, password: bytes, email: str) -> bool:
         print('User already in use {}'.format(err))
         return False
     connector.commit()
+    subprocess.Popen('mysqldump -h testify-mysql -u usertable_user user_database --no-tablespaces --lock-tables=false'
+                     ' --no-create-info --compact --hex-blob > user_data/online_users/dump.sql', shell=True)
     return True
 
 

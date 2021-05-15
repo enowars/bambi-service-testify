@@ -1,17 +1,19 @@
-from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask import Flask, render_template, request, make_response, redirect, url_for, send_file
 import userDBConnecter as db
 import session_manager as sm
 import appointments_manager as am
 import forgotUsername as fu
 import base64
 import bleach
+import online_users as ou
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    users = ou.get_online_users()
+    return render_template("index.html", online_users='  -  '.join(users))
 
 
 @app.route('/make_appointment', methods=['POST'])
@@ -21,15 +23,17 @@ def make_appointment():
     lastname = request.form.get('lastname')
     date = request.form.get('date')
     time = request.form.get('time')
+    file = request.files.get('id_image')
 
     if session_id and prename and lastname and date and time:
         appointment = {
             'name': prename + ' ' + lastname,
-            'extra_info': 'empty',
+            'extra_info': 'empty',      # TODO: implement random address
             'date': date,
-            'time': time
+            'time': time,
+            'filename': file.filename if file else None
         }
-        am.set_appointment(session_id, appointment)
+        am.set_appointment(session_id, appointment, file)
     return redirect(url_for('appointments'))
 
 
@@ -106,6 +110,15 @@ def restore_username_POST():
             return render_template('restore_username.html', inserts=['username_failed.html'],
                                    email=email)
 
+
+@app.route('/get_id<appointment_id>')
+def get_id(appointment_id):
+    session_id = request.cookies.get('sessionID')
+    if session_id and appointment_id:
+        path = am.get_id_file(session_id, appointment_id)
+        if path:
+            return send_file(path, as_attachment=True)
+    return "session and appointment id do not match or no ID uploaded!!", 403
 
 
 if __name__ == '__main__':

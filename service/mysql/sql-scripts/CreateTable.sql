@@ -20,9 +20,11 @@ CREATE TABLE appointments (
     name VARCHAR(100) NOT NULL,
     extra_info VARCHAR(500),
     date DATETIME NOT NULL,
+    filename VARCHAR(128),
     PRIMARY KEY (appointment_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 REVOKE ALL PRIVILEGES, GRANT OPTION FROM usertable_user;
 GRANT SELECT ON user_database.users to usertable_user@'%';
+ALTER USER 'usertable_user'@'%' IDENTIFIED WITH mysql_native_password BY 'userpass';
