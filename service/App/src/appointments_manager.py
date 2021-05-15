@@ -50,7 +50,7 @@ def get_appointments(session_id: str):
     user_id = get_user_id_for_session_id(session_id)
     connector = get_connector()
     cursor = connector.cursor()
-    sql = "SELECT name, extra_info, date, filename FROM user_database.appointments WHERE user_id = %s"
+    sql = "SELECT name, extra_info, date, appointment_id FROM user_database.appointments WHERE user_id = %s"
     vals = (user_id,)
     cursor.execute(sql, vals)
     result = cursor.fetchall()
@@ -61,12 +61,28 @@ def get_appointments(session_id: str):
 
 def get_path(path: str):
     if path:
-        basedir = os.path.abspath("static/user_data/")
-        path_comp = 'static/user_data/images/' + path
+        basedir = os.path.abspath("user_data/")
+        path_comp = 'user_data/ids/' + path
         matchpath = os.path.abspath(path_comp)
         if matchpath.startswith(basedir) and basedir == os.path.commonpath((basedir, matchpath)):
-            return 'user_data/images/' + path
+            return os.path.abspath('user_data/ids/' + path)
     return None
+
+
+def get_id_file(session_id: str, appointment_id: int):
+    connector = get_connector()
+    cursor = connector.cursor()
+    sql = "SELECT a.filename FROM user_database.appointments a " \
+          "JOIN user_database.sessions s ON a.user_id = s.user_id " \
+          "WHERE s.session_id = %s AND a.appointment_id = %s"
+    vals = (session_id, appointment_id)
+    cursor.execute(sql, vals)
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+    else:
+        print("appointment id and session id do not match")
+        return None
 
 
 def get_card_format(result):
@@ -76,6 +92,6 @@ def get_card_format(result):
                 'name': r[0],
                 'info': r[1],
                 'date': r[2].strftime('%d.%m.%Y %H:%M'),
-                'filename': r[3] if r[3] else 'card.jpg'
+                'id': str(r[3])
             })
     return cards

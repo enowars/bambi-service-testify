@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, make_response, redirect, url_for
+from flask import Flask, render_template, request, make_response, redirect, url_for, send_file
 import userDBConnecter as db
 import session_manager as sm
 import appointments_manager as am
@@ -26,7 +26,7 @@ def make_appointment():
     if session_id and prename and lastname and date and time:
         appointment = {
             'name': prename + ' ' + lastname,
-            'extra_info': 'empty',
+            'extra_info': 'empty',      # TODO: implement random address
             'date': date,
             'time': time,
             'filename': file.filename if file else None
@@ -108,6 +108,16 @@ def restore_username_POST():
             return render_template('restore_username.html', inserts=['username_failed.html'],
                                    email=email)
 
+
+@app.route('/get_id<appointment_id>')
+def get_id(appointment_id):
+    # TODO: return file to ID of appointment using session
+    session_id = request.cookies.get('sessionID')
+    if session_id and appointment_id:
+        path = am.get_id_file(session_id, appointment_id)
+        if path:
+            return send_file(path, as_attachment=True)
+    return "session and appointment id do not match or no ID uploaded!!", 403
 
 
 if __name__ == '__main__':
