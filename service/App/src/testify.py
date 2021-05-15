@@ -33,7 +33,7 @@ def make_appointment():
             'time': time,
             'filename': file.filename if file else None
         }
-        am.set_appointment(session_id, appointment)
+        am.set_appointment(session_id, appointment, file)
     return redirect(url_for('appointments'))
 
 
@@ -119,8 +119,6 @@ def get_id(appointment_id):
         if path:
             return send_file(path, as_attachment=True)
     return "session and appointment id do not match or no ID uploaded!!", 403
-
-
 
 
 if __name__ == '__main__':

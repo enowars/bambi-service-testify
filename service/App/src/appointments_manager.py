@@ -30,20 +30,22 @@ def get_user_id_for_session_id(session_id):
         return result[0]
 
 
-def set_appointment(session_id: str, appointment):
+def set_appointment(session_id: str, appointment, file):
     user_id = get_user_id_for_session_id(session_id)
     if user_id != -1:
         connector = get_connector()
         cursor = connector.cursor()
         sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename) " \
               "VALUES (%s, %s, %s, %s, %s)"
+        path = get_path(appointment['filename'])
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
-                appointment['time'], get_path(appointment['filename']))
+                appointment['time'], path)
         try:
             cursor.execute(sql, vals)
         except mysql.connector.Error as err:
             print('invalid appointment: {}'.format(err))
         connector.commit()
+        file.save('user_data/ids/' + secure_filename(appointment['filename']))
 
 
 def get_appointments(session_id: str):
