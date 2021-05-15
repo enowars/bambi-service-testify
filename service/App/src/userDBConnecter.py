@@ -16,13 +16,13 @@ def get_connector():
     return mydb
 
 
-def create_user(username: str, password: bytes) -> bool:
+def create_user(username: str, password: bytes, email: str) -> bool:
     connector = get_connector()
     salt = os.urandom(32)
     key = get_hash(password, salt)
     cursor = connector.cursor()
-    sql = "INSERT INTO user_database.users(username, password, salt) VALUES (%s, %s, %s)"
-    vals = (username, key, salt)
+    sql = "INSERT INTO user_database.users(username, password, salt, email) VALUES (%s, %s, %s, %s)"
+    vals = (username, key, salt, email)
     try:
         cursor.execute(sql, vals)
     except mysql.connector.Error as err:

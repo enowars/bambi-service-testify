@@ -31,7 +31,7 @@
                 </li>
                 <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
                 <li class="nav-item"><a class="nav-link" href="#!">Services</a></li>
-                <li class="nav-item"><a class="nav-link" href="#loginsection">Log In</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('index')}}">Log In</a></li>
             </ul>
         </div>
         <span class="navbar-text">
@@ -43,24 +43,13 @@
 <header class="py-5 bg-image-full" style="background-image: url('{{ url_for('static', filename='vaccine.jpg') }}')"><img
         class="img-fluid d-block mx-auto" src="{{ url_for('static', filename='logo_small.png') }}" alt="logo"/></header>
 
-<!-- Welcome section-->
-<section class="py-5">
-    <div class="container">
-        <h1>Welcome to the Testify Service</h1>
-        <p class="lead"><em>The one and only</em> secure platform for COVID-19 rapid test appointments</p>
-        <p>Using this service, you can simply make appointments for COVID-19 rapid tests in your environment! Simply
-            choose a date of your preference and you're good to go!</p>
-        <p>Please log in first to make an appointment!</p>
-    </div>
-</section>
 
 <!-- Login section-->
 <section id="loginsection" class="py-5">
     <div class="container">
-        <h1>Log in</h1>
+        <h1>Restore Username</h1>
         <p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid, suscipit, rerum quos facilis repellat
-            architecto commodi officia atque nemo facere eum non illo voluptatem quae delectus odit vel itaque amet.</p>
+        <p>If you forgot your username, you can simply put in your email address and you will receive your username!</p>
         <div class="inserts">
             {% if inserts %}
             {% for i in inserts %}
@@ -79,33 +68,11 @@
                 </div>
 
                 <!-- Login Form -->
-                <form class="login" name="login_form" action="/login" method="post" autocomplete="off">
-
-                    <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
-                        <input type="radio" value="signin" class="btn-check" name="login" id="radio_signin"
-                               autocomplete="off"
-                               checked>
-                        <label class="btn btn-outline-primary" for="radio_signin">Sign in</label>
-
-                        <input type="radio" value="signup" class="btn-check" name="login" id="radio_signup"
-                               autocomplete="off">
-                        <label class="btn btn-outline-primary" for="radio_signup">Sign up</label>
-                    </div>
-
+                <form class="login" name="login_form" action="/restore_username" method="post" autocomplete="off">
                     <input type="email" id="email" class="fadeIn email" name="email" placeholder="email"
-                           autocomplete="off" style="display: none">
-                    <input type="text" id="user_login" class="fadeIn second" name="username" placeholder="username"
-                           autocomplete="off" required>
-                    <input type="password" id="password" class="fadeIn third" name="password" placeholder="password"
-                           autocomplete="off" required>
-                    <input type="submit" id="login" class="fadeIn fourth" name="login" value="Login">
+                           autocomplete="off" required">
+                    <input type="submit" id="login" class="fadeIn fourth" name="login" value="get username">
                 </form>
-
-                <!-- Forgot Username -->
-                <div id="formFooter">
-                    <a class="underlineHover" href="{{url_for('restore_username')}}">Forgot Username?</a>
-                </div>
-
             </div>
         </div>
     </div>
@@ -123,56 +90,5 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
         crossorigin="anonymous"></script>
-<script>// Add error message element after input.
-let pw = $('#password')
-pw.after('<div style="display: none; color: red" class="password-error">Passowrd may only contain ASCII characters!</div>')
-
-pw.on('input', function (evt) {
-    let value = evt.target.value
-
-    if (value.length === 0) {
-        evt.target.className = ''
-        $('.password-error').hide();
-        return
-    }
-
-    if (/^[\x21-\x7E]*$/.test(value)) {     // test for normal valid ascii chars
-        evt.target.className = 'valid'
-        $('.password-error').hide();
-    } else {
-        evt.target.className = 'invalid'
-        $('.password-error').show();
-    }
-})
-$('form[name="login_form"]').one('submit', function (e) {
-    e.preventDefault();
-    let pw = document.getElementById('password').value
-    document.getElementById('password').value = btoa(pw)
-
-    $(this).submit();
-});
-</script>
-<script>
-    $('input:radio[name="login"]').change(
-        function ()
-        {
-           if($(this).is(':checked'))
-           {
-               let email = $('input[type="email"]')
-               if ($(this).val() === "signup")
-               {
-                   email.show()
-                   email.prop('required', true)
-               }
-               else if (($(this).val() === "signin"))
-               {
-                   email.hide()
-                   email.val('')
-                   email.prop('required', false)
-               }
-           }
-           console.log($(this).val())
-        });
-</script>
 </body>
 </html>

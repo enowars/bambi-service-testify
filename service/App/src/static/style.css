@@ -114,7 +114,7 @@ input[type=button]:active, input[type=submit]:active, input[type=reset]:active  
   transform: scale(0.95);
 }
 
-input[type=text], input[type=password] {
+input[type=text], input[type=password], input[type=email] {
   background-color: #f6f6f6;
   color: #0d0d0d;
   padding: 15px 32px;
@@ -134,12 +134,12 @@ input[type=text], input[type=password] {
   border-radius: 5px 5px 5px 5px;
 }
 
-input[type=text], input[type=password]:focus {
+input[type=text], input[type=password], input[type=email] {
   background-color: #fff;
   border-bottom: 2px solid #5fbae9;
 }
 
-input[type=text], input[type=password]:placeholder {
+input[type=text]::placeholder, input[type=password]::placeholder, input[type=email]::placeholder {
   color: #cccccc;
 }
 
@@ -218,6 +218,12 @@ input.invalid + .password-error {
   -webkit-animation-duration:1s;
   -moz-animation-duration:1s;
   animation-duration:1s;
+}
+
+.fadeIn.email {
+  -webkit-animation-delay: 0.2s;
+  -moz-animation-delay: 0.2s;
+  animation-delay: 0.2s;
 }
 
 .fadeIn.first {

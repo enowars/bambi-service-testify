@@ -3,6 +3,7 @@ CREATE TABLE users (
 	username VARCHAR(30) NOT NULL UNIQUE,
 	password BINARY(32) NOT NULL,
 	salt BINARY(32) NOT NULL,
+	email VARCHAR(255) UNIQUE NOT NULL,
 	PRIMARY KEY (user_id)
 );
 
@@ -22,3 +23,6 @@ CREATE TABLE appointments (
     PRIMARY KEY (appointment_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM usertable_user;
+GRANT SELECT ON user_database.users to usertable_user@'%';

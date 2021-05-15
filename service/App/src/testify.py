@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, make_response, redirect, url_
 import userDBConnecter as db
 import session_manager as sm
 import appointments_manager as am
+import forgotUsername as fu
 import base64
 import bleach
 
@@ -16,12 +17,17 @@ def index():
 @app.route('/make_appointment', methods=['POST'])
 def make_appointment():
     session_id = request.cookies.get('sessionID')
-    if session_id:
+    prename = request.form.get('prename')
+    lastname = request.form.get('lastname')
+    date = request.form.get('date')
+    time = request.form.get('time')
+
+    if session_id and prename and lastname and date and time:
         appointment = {
-            'name': request.form['prename'] + ' ' + request.form['lastname'],
+            'name': prename + ' ' + lastname,
             'extra_info': 'empty',
-            'date': request.form['date'],
-            'time': request.form['time']
+            'date': date,
+            'time': time
         }
         am.set_appointment(session_id, appointment)
     return redirect(url_for('appointments'))
@@ -29,10 +35,14 @@ def make_appointment():
 
 @app.route('/login', methods=['POST'])
 def login():
-    username = request.form['username']
-    password = request.form['password']
-    if username is not None and password is not None:
-        if request.form['login'] == 'signin':
+    request.form.get('username')
+    username = request.form.get('username')
+    password = request.form.get('password')
+    login_type = request.form.get('login')
+    email = request.form.get('email')
+
+    if username and password and login_type:
+        if login_type == 'signin':
             if db.check_user(username, base64.b64decode(str(password).encode('ascii'))):
                 resp = make_response(redirect(url_for('appointments')))
                 session_id = sm.create_session(username)
@@ -41,15 +51,16 @@ def login():
                 return resp, 302
             else:
                 return render_template('index.html', inserts=['login_warning.html']), 401
-        elif request.form['login'] == 'signup':
-            if db.create_user(username, base64.b64decode(str(password).encode('ascii'))):
-                resp = make_response(redirect(url_for('appointments')))
-                session_id = sm.create_session(username)
-                resp.set_cookie('sessionID', str(session_id))
-                resp.set_cookie('username', bleach.clean(username))
-                return resp, 302
-            else:
-                return render_template('index.html', inserts=['login_warning.html']), 401
+        elif login_type == 'signup':
+            if email:
+                if db.create_user(username, base64.b64decode(str(password).encode('ascii')), email):
+                    resp = make_response(redirect(url_for('appointments')))
+                    session_id = sm.create_session(username)
+                    resp.set_cookie('sessionID', str(session_id))
+                    resp.set_cookie('username', bleach.clean(username))
+                    return resp, 302
+                else:
+                    return render_template('index.html', inserts=['login_warning.html']), 401
 
 
 @app.route('/appointments')
@@ -78,5 +89,24 @@ def logout():
         return resp, 302
 
 
+@app.route('/restore_username')
+def restore_username():
+    return render_template('restore_username.html')
+
+
+@app.route('/restore_username', methods=['POST'])
+def restore_username_POST():
+    email = request.form.get('email')
+    if email:
+        username = fu.get_username_for_email(email)
+        if username:
+            return render_template('restore_username.html', inserts=['username_success.html'],
+                                   username=fu.get_username_for_email(email))
+        else:
+            return render_template('restore_username.html', inserts=['username_failed.html'],
+                                   email=email)
+
+
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)
+    app.run(host='0.0.0.0', port=8000, debug=True) # TODO: remove debug later
