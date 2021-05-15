@@ -87,7 +87,7 @@
         <div class="row row-cols-2 row-cols-lg-3 g-4">
             {% if cards %}
             {% for c in cards %}
-            {% with card_name=c.name, card_info=c.info, card_date=c.date %}
+            {% with card_name=c.name, card_info=c.info, card_date=c.date, card_image=c.filename %}
                 {% include "appointment_cards.html" %}
             {% endwith %}
             {% endfor %}

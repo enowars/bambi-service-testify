@@ -48,7 +48,7 @@ def get_appointments(session_id: str):
     user_id = get_user_id_for_session_id(session_id)
     connector = get_connector()
     cursor = connector.cursor()
-    sql = "SELECT name, extra_info, date FROM user_database.appointments WHERE user_id = %s"
+    sql = "SELECT name, extra_info, date, filename FROM user_database.appointments WHERE user_id = %s"
     vals = (user_id,)
     cursor.execute(sql, vals)
     result = cursor.fetchall()
@@ -63,6 +63,7 @@ def get_card_format(result):
             cards.append({
                 'name': r[0],
                 'info': r[1],
-                'date': r[2].strftime('%d.%m.%Y %H:%M')
+                'date': r[2].strftime('%d.%m.%Y %H:%M'),
+                'filename': 'images/' + r[3] if r[3] else 'card.jpg'
             })
     return cards
