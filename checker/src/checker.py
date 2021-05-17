@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import base64
+import re
 
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import SimpleSocket, assert_equals, assert_in
@@ -13,7 +14,7 @@ import string
 ####
 
 
-def get_random_user():
+def get_random_string():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
 
@@ -56,14 +57,12 @@ class testifyChecker(BaseChecker):
             f"Sending command to register user: {username} with password: {password}"
         )
         res = self.http_post('/login', **kwargs)
-        self.debug(res.text)
         if res.status_code != 200:
             raise BrokenServiceException("could not register user at service")
         return res.history[0].cookies.get('sessionID')
 
-    def make_appointment(self, flag, filename):
-        user = get_random_user()
-        session_id = self.get_user(user, user)
+    def make_appointment(self, flag, filename, username, password):
+        session_id = self.get_user(username, password)
         data = {
             'prename': flag,
             'lastname': 'Meyer',
@@ -72,7 +71,7 @@ class testifyChecker(BaseChecker):
         }
         cookies = {
             'sessionID': session_id,
-            'username': user
+            'username': username
         }
         files = {'id_image': (filename, "test id document", 'application/octet-stream')}
 
@@ -83,29 +82,14 @@ class testifyChecker(BaseChecker):
             'allow_redirects': True
         }
         res = self.http_post('/make_appointment', **kwargs)
-        self.debug(res.text)
-        if res.status_code != 200:
+        if res.status_code != 200 or res.text.find('Could not make appointment') > 0:
             raise BrokenServiceException("could not make appointment")
 
-    def register_user(self, conn: SimpleSocket, username: str, password: str):
-        self.debug(
-            f"Sending command to register user: {username} with password: {password}"
-        )
-        conn.write(f"reg {username} {password}\n")
-        conn.readline_expect(
-            b"User successfully registered",
-            read_until=b">",
-            exception_message="Failed to register user",
-        )
-
-    def login_user(self, conn: SimpleSocket, username: str, password: str):
-        self.debug(f"Sending command to login.")
-        conn.write(f"log {username} {password}\n")
-        conn.readline_expect(
-            b"Successfully logged in!",
-            read_until=b">",
-            exception_message="Failed to log in",
-        )
+        result = re.search('Successfully made appointment &lt;(.*)&gt', res.text)
+        if result:
+            return result.group(1)
+        else:
+            raise BrokenServiceException('could not get appointment id')
 
     def putflag(self):  # type: () -> None
         """
@@ -119,58 +103,17 @@ class testifyChecker(BaseChecker):
                 the preferred way to report errors in the service is by raising an appropriate enoexception
         """
         if self.variant_id == 0:
-            self.make_appointment(self.flag, "filename")
+            username = get_random_string()
+            password = get_random_string()
+            appointment_id = self.make_appointment(self.flag, "filename", username, password)
 
-
-
-            # # First we need to register a user. So let's create some random strings. (Your real checker should use some funny usernames or so)
-            # username: str = "".join(
-            #     random.choices(string.ascii_uppercase + string.digits, k=12)
-            # )
-            # password: str = "".join(
-            #     random.choices(string.ascii_uppercase + string.digits, k=12)
-            # )
-            #
-            # # Log a message before any critical action that could raise an error.
-            # self.debug(f"Connecting to service")
-            # # Create a TCP connection to the service.
-            # conn = self.connect()
-            # welcome = conn.read_until(">")
-            #
-            # # Register a new user
-            # self.register_user(conn, username, password)
-            #
-            # # Now we need to login
-            # self.login_user(conn, username, password)
-            #
-            # # Finally, we can post our note!
-            # self.debug(f"Sending command to set the flag")
-            # conn.write(f"set {self.flag}\n")
-            # conn.read_until(b"Note saved! ID is ")
-            #
-            # try:
-            #     # Try to retrieve the resulting noteId. Using rstrip() is hacky, you should probably want to use regular expressions or something more robust.
-            #     noteId = conn.read_until(b"!\n>").rstrip(b"!\n>").decode()
-            # except Exception as ex:
-            #     self.debug(f"Failed to retrieve note: {ex}")
-            #     raise BrokenServiceException("Could not retrieve NoteId")
-            #
-            # assert_equals(len(noteId) > 0, True, message="Empty noteId received")
-            #
-            # self.debug(f"Got noteId {noteId}")
-            #
-            # # Exit!
-            # self.debug(f"Sending exit command")
-            # conn.write(f"exit\n")
-            # conn.close()
-            #
-            # # Save the generated values for the associated getflag() call.
-            # # This is not a real dictionary! You cannot update it (i.e., self.chain_db["foo"] = bar) and some types are converted (i.e., bool -> str.). See: https://github.com/enowars/enochecker/issues/27
-            # self.chain_db = {
-            #     "username": username,
-            #     "password": password,
-            #     "noteId": noteId,
-            # }
+            # store in db
+            self.chain_db = {
+                "username": username,
+                "password": password,
+                "app_id": appointment_id,
+            }
+            self.debug('successfully made appointment %s' % appointment_id)
 
         else:
             raise EnoException("Wrong variant_id provided")
@@ -190,7 +133,7 @@ class testifyChecker(BaseChecker):
             try:
                 username: str = self.chain_db["username"]
                 password: str = self.chain_db["password"]
-                noteId: str = self.chain_db["noteId"]
+                app_id: str = self.chain_db["app_id"]
             except IndexError as ex:
                 self.debug(f"error getting notes from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")

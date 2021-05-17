@@ -85,7 +85,7 @@ def appointments():
             app_id = request.args.get('app_id')
             if status:
                 inserts = ['success.html'] if status == 'success' else ['failed.html']
-                message = "Successfully made appointment %s" % app_id if app_id else "Could not make appointment"
+                message = "Successfully made appointment <%s>" % app_id if app_id else "Could not make appointment"
             return render_template('appointments.html', user=username, cards=cards, inserts=inserts, message=message), 200
         else:
             return redirect(url_for('index'))
