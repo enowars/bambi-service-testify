@@ -59,7 +59,6 @@ class testifyChecker(BaseChecker):
         res = self.http_post('/login', **kwargs)
         if res.status_code != 200:
             raise BrokenServiceException("could not register user at service")
-        return res.history[0].cookies.get('sessionID')
 
     def login(self, username, password):
         obj = {
@@ -77,26 +76,20 @@ class testifyChecker(BaseChecker):
         res = self.http_post('/login', **kwargs)
         if res.status_code != 200:
             raise BrokenServiceException("could not login user at service")
-        return res.history[0].cookies.get('sessionID')
 
     def make_appointment(self, flag, filename, username, password):
-        session_id = self.register(username, password)
+        self.register(username, password)
         data = {
             'prename': flag,
             'lastname': 'Meyer',
             'date': '2021-05-06',
             'time': '02:56'
         }
-        cookies = {
-            'sessionID': session_id,
-            'username': username
-        }
         files = {'id_image': (filename, "test id document", 'application/octet-stream')}
 
         kwargs = {
             'data': data,
             'files': files,
-            'cookies': cookies,
             'allow_redirects': True
         }
         res = self.http_post('/make_appointment', **kwargs)
@@ -110,12 +103,7 @@ class testifyChecker(BaseChecker):
             raise BrokenServiceException('could not get appointment id')
 
     def get_appointment(self, session_id, username='testuser'):
-        cookies = {
-            'sessionID': session_id,
-            'username': username
-        }
         kwargs = {
-            'cookies': cookies,
             'allow_redirects': True
         }
         resp = self.http_get('/appointments', **kwargs)
