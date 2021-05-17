@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
+import base64
+
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import SimpleSocket, assert_equals, assert_in
 import random
 import string
 
+
 #### Checker Tenets
 # A checker SHOULD not be easily identified by the examination of network traffic => This one is not satisfied, because our usernames and notes are simple too random and easily identifiable.
 # A checker SHOULD use unusual, incorrect or pseudomalicious input to detect network filters => This tenet is not satisfied, because we do not send common attack strings (i.e. for SQL injection, RCE, etc.) in our notes or usernames.
 ####
+
+
+def get_random_user():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
 
 
 class testifyChecker(BaseChecker):
@@ -31,7 +38,54 @@ class testifyChecker(BaseChecker):
     havoc_variants = 3
     service_name = "testify"
     port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
+
     ##### END CHECKER PARAMETERS
+
+    def get_user(self, username, password):
+        obj = {
+            'username': username,
+            'password': base64.b64encode(bytes(password, 'utf-8')).decode('ascii'),
+            'email': username + '@' + username + '.de',
+            'login': 'signup'
+        }
+        kwargs = {
+            'data': obj,
+            'allow_redirects': True
+        }
+        self.debug(
+            f"Sending command to register user: {username} with password: {password}"
+        )
+        res = self.http_post('/login', **kwargs)
+        self.debug(res.text)
+        if res.status_code != 200:
+            raise BrokenServiceException("could not register user at service")
+        return res.history[0].cookies.get('sessionID')
+
+    def make_appointment(self, flag, filename):
+        user = get_random_user()
+        session_id = self.get_user(user, user)
+        data = {
+            'prename': flag,
+            'lastname': 'Meyer',
+            'date': '2021-05-06',
+            'time': '02:56'
+        }
+        cookies = {
+            'sessionID': session_id,
+            'username': user
+        }
+        files = {'id_image': (filename, "test id document", 'application/octet-stream')}
+
+        kwargs = {
+            'data': data,
+            'files': files,
+            'cookies': cookies,
+            'allow_redirects': True
+        }
+        res = self.http_post('/make_appointment', **kwargs)
+        self.debug(res.text)
+        if res.status_code != 200:
+            raise BrokenServiceException("could not make appointment")
 
     def register_user(self, conn: SimpleSocket, username: str, password: str):
         self.debug(
@@ -65,54 +119,58 @@ class testifyChecker(BaseChecker):
                 the preferred way to report errors in the service is by raising an appropriate enoexception
         """
         if self.variant_id == 0:
-            # First we need to register a user. So let's create some random strings. (Your real checker should use some funny usernames or so)
-            username: str = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-            password: str = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
+            self.make_appointment(self.flag, "filename")
 
-            # Log a message before any critical action that could raise an error.
-            self.debug(f"Connecting to service")
-            # Create a TCP connection to the service.
-            conn = self.connect()
-            welcome = conn.read_until(">")
 
-            # Register a new user
-            self.register_user(conn, username, password)
 
-            # Now we need to login
-            self.login_user(conn, username, password)
-
-            # Finally, we can post our note!
-            self.debug(f"Sending command to set the flag")
-            conn.write(f"set {self.flag}\n")
-            conn.read_until(b"Note saved! ID is ")
-
-            try:
-                # Try to retrieve the resulting noteId. Using rstrip() is hacky, you should probably want to use regular expressions or something more robust.
-                noteId = conn.read_until(b"!\n>").rstrip(b"!\n>").decode()
-            except Exception as ex:
-                self.debug(f"Failed to retrieve note: {ex}")
-                raise BrokenServiceException("Could not retrieve NoteId")
-
-            assert_equals(len(noteId) > 0, True, message="Empty noteId received")
-
-            self.debug(f"Got noteId {noteId}")
-
-            # Exit!
-            self.debug(f"Sending exit command")
-            conn.write(f"exit\n")
-            conn.close()
-
-            # Save the generated values for the associated getflag() call.
-            # This is not a real dictionary! You cannot update it (i.e., self.chain_db["foo"] = bar) and some types are converted (i.e., bool -> str.). See: https://github.com/enowars/enochecker/issues/27
-            self.chain_db = {
-                "username": username,
-                "password": password,
-                "noteId": noteId,
-            }
+            # # First we need to register a user. So let's create some random strings. (Your real checker should use some funny usernames or so)
+            # username: str = "".join(
+            #     random.choices(string.ascii_uppercase + string.digits, k=12)
+            # )
+            # password: str = "".join(
+            #     random.choices(string.ascii_uppercase + string.digits, k=12)
+            # )
+            #
+            # # Log a message before any critical action that could raise an error.
+            # self.debug(f"Connecting to service")
+            # # Create a TCP connection to the service.
+            # conn = self.connect()
+            # welcome = conn.read_until(">")
+            #
+            # # Register a new user
+            # self.register_user(conn, username, password)
+            #
+            # # Now we need to login
+            # self.login_user(conn, username, password)
+            #
+            # # Finally, we can post our note!
+            # self.debug(f"Sending command to set the flag")
+            # conn.write(f"set {self.flag}\n")
+            # conn.read_until(b"Note saved! ID is ")
+            #
+            # try:
+            #     # Try to retrieve the resulting noteId. Using rstrip() is hacky, you should probably want to use regular expressions or something more robust.
+            #     noteId = conn.read_until(b"!\n>").rstrip(b"!\n>").decode()
+            # except Exception as ex:
+            #     self.debug(f"Failed to retrieve note: {ex}")
+            #     raise BrokenServiceException("Could not retrieve NoteId")
+            #
+            # assert_equals(len(noteId) > 0, True, message="Empty noteId received")
+            #
+            # self.debug(f"Got noteId {noteId}")
+            #
+            # # Exit!
+            # self.debug(f"Sending exit command")
+            # conn.write(f"exit\n")
+            # conn.close()
+            #
+            # # Save the generated values for the associated getflag() call.
+            # # This is not a real dictionary! You cannot update it (i.e., self.chain_db["foo"] = bar) and some types are converted (i.e., bool -> str.). See: https://github.com/enowars/enochecker/issues/27
+            # self.chain_db = {
+            #     "username": username,
+            #     "password": password,
+            #     "noteId": noteId,
+            # }
 
         else:
             raise EnoException("Wrong variant_id provided")
@@ -158,7 +216,6 @@ class testifyChecker(BaseChecker):
             conn.close()
         else:
             raise EnoException("Wrong variant_id provided")
-
 
     def putnoise(self):  # type: () -> None
         """
