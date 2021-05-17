@@ -42,7 +42,7 @@ class testifyChecker(BaseChecker):
 
     ##### END CHECKER PARAMETERS
 
-    def get_user(self, username, password):
+    def register(self, username, password):
         obj = {
             'username': username,
             'password': base64.b64encode(bytes(password, 'utf-8')).decode('ascii'),
@@ -61,8 +61,26 @@ class testifyChecker(BaseChecker):
             raise BrokenServiceException("could not register user at service")
         return res.history[0].cookies.get('sessionID')
 
+    def login(self, username, password):
+        obj = {
+            'username': username,
+            'password': base64.b64encode(bytes(password, 'utf-8')).decode('ascii'),
+            'login': 'signin'
+        }
+        kwargs = {
+            'data': obj,
+            'allow_redirects': True
+        }
+        self.debug(
+            f"Sending command to login user: {username} with password: {password}"
+        )
+        res = self.http_post('/login', **kwargs)
+        if res.status_code != 200:
+            raise BrokenServiceException("could not login user at service")
+        return res.history[0].cookies.get('sessionID')
+
     def make_appointment(self, flag, filename, username, password):
-        session_id = self.get_user(username, password)
+        session_id = self.register(username, password)
         data = {
             'prename': flag,
             'lastname': 'Meyer',
@@ -90,6 +108,18 @@ class testifyChecker(BaseChecker):
             return result.group(1)
         else:
             raise BrokenServiceException('could not get appointment id')
+
+    def get_appointment(self, session_id, username='testuser'):
+        cookies = {
+            'sessionID': session_id,
+            'username': username
+        }
+        kwargs = {
+            'cookies': cookies,
+            'allow_redirects': True
+        }
+        resp = self.http_get('/appointments', **kwargs)
+        return resp
 
     def putflag(self):  # type: () -> None
         """
@@ -138,25 +168,11 @@ class testifyChecker(BaseChecker):
                 self.debug(f"error getting notes from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
 
-            self.debug(f"Connecting to the service")
-            conn = self.connect()
-            welcome = conn.read_until(">")
-
             # Let's login to the service
-            self.login_user(conn, username, password)
+            session_id = self.login(username, password)
+            resp = self.get_appointment(session_id)
 
-            # Let´s obtain our note.
-            self.debug(f"Sending command to retrieve note: {noteId}")
-            conn.write(f"get {noteId}\n")
-            note = conn.read_until(">")
-            assert_in(
-                self.flag.encode(), note, "Resulting flag was found to be incorrect"
-            )
-
-            # Exit!
-            self.debug(f"Sending exit command")
-            conn.write(f"exit\n")
-            conn.close()
+            assert_in(self.flag, resp.text, "Resulting flag was found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
