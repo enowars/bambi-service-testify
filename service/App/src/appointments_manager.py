@@ -30,29 +30,31 @@ def get_user_id_for_session_id(session_id):
         return result[0]
 
 
-def set_appointment(session_id: str, appointment, file):
+def set_appointment(session_id: str, appointment, file) -> int:
     user_id = get_user_id_for_session_id(session_id)
     if user_id != -1:
         connector = get_connector()
         cursor = connector.cursor()
         sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename) " \
               "VALUES (%s, %s, %s, %s, %s)"
-        path = get_path(appointment['filename'])
+        path = get_path(appointment['filename']) if file else None
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
                 appointment['time'], path)
         try:
             cursor.execute(sql, vals)
+            if file:
+                file.save('user_data/ids/' + secure_filename(appointment['filename']))
+            connector.commit()
+            return cursor.lastrowid
         except mysql.connector.Error as err:
             print('invalid appointment: {}'.format(err))
-        connector.commit()
-        file.save('user_data/ids/' + secure_filename(appointment['filename']))
 
 
 def get_appointments(session_id: str):
     user_id = get_user_id_for_session_id(session_id)
     connector = get_connector()
     cursor = connector.cursor()
-    sql = "SELECT name, extra_info, date, appointment_id FROM user_database.appointments WHERE user_id = %s"
+    sql = "SELECT name, extra_info, date, appointment_id FROM user_database.appointments WHERE user_id = %s ORDER BY appointment_id DESC"
     vals = (user_id,)
     cursor.execute(sql, vals)
     result = cursor.fetchall()

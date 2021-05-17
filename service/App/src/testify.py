@@ -25,6 +25,8 @@ def make_appointment():
     time = request.form.get('time')
     file = request.files.get('id_image')
 
+    appointment_id = None
+
     if session_id and prename and lastname and date and time:
         appointment = {
             'name': prename + ' ' + lastname,
@@ -33,8 +35,11 @@ def make_appointment():
             'time': time,
             'filename': file.filename if file else None
         }
-        am.set_appointment(session_id, appointment, file)
-    return redirect(url_for('appointments'))
+        appointment_id = am.set_appointment(session_id, appointment, file)
+    if appointment_id:
+        return redirect(url_for('appointments', app_id=appointment_id, status='success'))
+    else:
+        return redirect(url_for('appointments', status='fail'))
 
 
 @app.route('/login', methods=['POST'])
@@ -75,7 +80,13 @@ def appointments():
     if username and session_id:
         if sm.check_session_id(session_id):
             cards = am.get_appointments(session_id)
-            return render_template('appointments.html', user=username, cards=cards), 200
+            inserts, message = None, None
+            status = request.args.get('status')
+            app_id = request.args.get('app_id')
+            if status:
+                inserts = ['success.html'] if status == 'success' else ['failed.html']
+                message = "Successfully made appointment %s" % app_id if app_id else "Could not make appointment"
+            return render_template('appointments.html', user=username, cards=cards, inserts=inserts, message=message), 200
         else:
             return redirect(url_for('index'))
     else:

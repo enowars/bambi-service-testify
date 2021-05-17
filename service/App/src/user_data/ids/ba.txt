@@ -1,0 +1,10 @@
+rdma benchmarking tools
+roce system performance evaluation
+netbox ldap
+https://docs.ansible.com/ansible/latest/network/index.html
+https://community.mellanox.com/s/article/howto-enable-rdma-and-tcp-over-sonic--ocp-2017-demonstration-x
+dual socket epyc server
+fast pool beegf
+lustre fs robin hood
+sonic
+onyx
