@@ -95,7 +95,7 @@ def get_card_format(result):
             cards.append({
                 'name': r[0],
                 'info': r[1],
-                'date': r[2].strftime('%d.%m.%Y %H:%M'),
+                'date': r[2].strftime('%Y-%m-%d / %H:%M'),
                 'id': str(r[3])
             })
     return cards

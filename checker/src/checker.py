@@ -207,7 +207,7 @@ class testifyChecker(BaseChecker):
             assert_in(profile['prename'], resp.text, "Resulting prename was found to be incorrect")
             assert_in(profile['lastname'], resp.text, "Resulting lastname was found to be incorrect")
             assert_in(profile['date'], resp.text, "Resulting date was found to be incorrect")
-            assert_in(profile['time'], resp.text, "Resulting time found to be incorrect")
+            assert_in(profile['time'].str, resp.text, "Resulting time found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
