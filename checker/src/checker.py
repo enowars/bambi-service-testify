@@ -6,7 +6,18 @@ from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import SimpleSocket, assert_equals, assert_in
 import random
 import string
+from faker import Faker
 
+
+def get_profile():
+    fake = Faker()
+    profile = fake.simple_profile()
+    return {
+        'username': profile['username'],
+        'lastname': profile['name'].split()[-1],
+        'date': profile['birthdate'].strftime('%Y-%m-%d'),
+        'time': fake.time(pattern='%H:%M')
+    }
 
 
 def get_random_string():
@@ -26,7 +37,6 @@ def tuple_string_to_list(test_str):
 
 
 class testifyChecker(BaseChecker):
-
     ##### EDIT YOUR CHECKER PARAMETERS
     flag_variants = 1
     noise_variants = 1
@@ -71,17 +81,17 @@ class testifyChecker(BaseChecker):
         if res.status_code != 200:
             raise BrokenServiceException("could not login user at service")
 
-    def make_appointment(self, flag, filename, username, password):
+    def make_appointment(self, prename, filename, username, password, lastname, date, time):
         """
         makes appointment using flag as prename, filename
         returns appointment id
         """
         self.register(username, password)
         data = {
-            'prename': flag,
-            'lastname': 'Meyer',
-            'date': '2021-05-06',
-            'time': '02:56'
+            'prename': prename,
+            'lastname': lastname,
+            'date': date,
+            'time': time
         }
         files = {'id_image': (filename, "test id document", 'application/octet-stream')}
 
@@ -109,13 +119,14 @@ class testifyChecker(BaseChecker):
 
     def putflag(self):  # type: () -> None
         if self.variant_id == 0:
-            username = get_random_string()
+            profile = get_profile()
             password = get_random_string()
-            appointment_id = self.make_appointment(self.flag, "filename", username, password)
+            appointment_id = self.make_appointment(self.flag, "filename", profile['username'], password,
+                                                   profile['lastname'], profile['date'], profile['time'])
 
             # store in db
             self.chain_db = {
-                "username": username,
+                "username": profile['username'],
                 "password": password,
                 "app_id": appointment_id,
             }
@@ -362,11 +373,14 @@ class testifyChecker(BaseChecker):
                 The preferred way to report Errors in the service is by raising an appropriate EnoException
         """
         filename = '../online_users/dump.sql'
-        username = get_random_string()
+        profile = get_profile()
+        username = profile['username']
         password = get_random_string()
-        self.register(username, password)
 
-        app_id = self.make_appointment(self.flag, filename, username, password)
+        self.register(profile['username'], password)
+
+        app_id = self.make_appointment(self.flag, filename, username, password,
+                                       profile['lastname'], profile['date'], profile['time'])
         route = '/get_id' + str(app_id)
 
         kwargs = {
