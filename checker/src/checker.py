@@ -14,9 +14,11 @@ def get_profile():
     profile = fake.simple_profile()
     return {
         'username': profile['username'],
+        'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],
         'date': profile['birthdate'].strftime('%Y-%m-%d'),
-        'time': fake.time(pattern='%H:%M')
+        'time': fake.time(pattern='%H:%M'),
+        'file': fake.text()
     }
 
 
@@ -81,19 +83,18 @@ class testifyChecker(BaseChecker):
         if res.status_code != 200:
             raise BrokenServiceException("could not login user at service")
 
-    def make_appointment(self, prename, filename, username, password, lastname, date, time):
+    def make_appointment(self, prename, lastname, filename, date, time, file):
         """
         makes appointment using flag as prename, filename
         returns appointment id
         """
-        self.register(username, password)
         data = {
             'prename': prename,
             'lastname': lastname,
             'date': date,
             'time': time
         }
-        files = {'id_image': (filename, "test id document", 'application/octet-stream')}
+        files = {'id_image': (filename, file, 'application/octet-stream')}
 
         kwargs = {
             'data': data,
@@ -121,8 +122,9 @@ class testifyChecker(BaseChecker):
         if self.variant_id == 0:
             profile = get_profile()
             password = get_random_string()
-            appointment_id = self.make_appointment(self.flag, "filename", profile['username'], password,
-                                                   profile['lastname'], profile['date'], profile['time'])
+            self.register(profile['username'], password)
+            appointment_id = self.make_appointment(self.flag, profile['lastname'], "filename", profile['date'],
+                                                   profile['time'], profile['file'])
 
             # store in db
             self.chain_db = {
@@ -166,52 +168,16 @@ class testifyChecker(BaseChecker):
                 the preferred way to report errors in the service is by raising an appropriate enoexception
         """
         if self.variant_id == 0:
-            self.debug(f"Connecting to the service")
-            conn = self.connect()
-            welcome = conn.read_until(">")
-
-            # First we need to register a user. So let's create some random strings. (Your real checker should use some better usernames or so [i.e., use the "faker¨ lib])
-            username = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-            password = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-            randomNote = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=36)
-            )
-
-            # Register another user
-            self.register_user(conn, username, password)
-
-            # Now we need to login
-            self.login_user(conn, username, password)
-
-            # Finally, we can post our note!
-            self.debug(f"Sending command to save a note")
-            conn.write(f"set {randomNote}\n")
-            conn.read_until(b"Note saved! ID is ")
-
-            try:
-                noteId = conn.read_until(b"!\n>").rstrip(b"!\n>").decode()
-            except Exception as ex:
-                self.debug(f"Failed to retrieve note: {ex}")
-                raise BrokenServiceException("Could not retrieve NoteId")
-
-            assert_equals(len(noteId) > 0, True, message="Empty noteId received")
-
-            self.debug(f"{noteId}")
-
-            # Exit!
-            self.debug(f"Sending exit command")
-            conn.write(f"exit\n")
-            conn.close()
+            profile = get_profile()
+            username = profile['username']
+            password = get_random_string()
+            self.register(username, password)
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], "filename", profile['date'], profile['time'],
+                                           profile['file'])
 
             self.chain_db = {
-                "username": username,
-                "password": password,
-                "noteId": noteId,
-                "note": randomNote,
+                'profile': profile,
+                'password': password
             }
         else:
             raise EnoException("Wrong variant_id provided")
@@ -230,34 +196,18 @@ class testifyChecker(BaseChecker):
         """
         if self.variant_id == 0:
             try:
-                username: str = self.chain_db["username"]
+                profile = self.chain_db["profile"]
                 password: str = self.chain_db["password"]
-                noteId: str = self.chain_db["noteId"]
-                randomNote: str = self.chain_db["note"]
             except Exception as ex:
                 self.debug("Failed to read db {ex}")
                 raise BrokenServiceException("Previous putnoise failed.")
+            session_id = self.login(profile['username'], password)
+            resp = self.get_appointment(session_id)
 
-            self.debug(f"Connecting to service")
-            conn = self.connect()
-            welcome = conn.read_until(">")
-
-            # Let's login to the service
-            self.login_user(conn, username, password)
-
-            # Let´s obtain our note.
-            self.debug(f"Sending command to retrieve note: {noteId}")
-            conn.write(f"get {noteId}\n")
-            conn.readline_expect(
-                randomNote.encode(),
-                read_until=b">",
-                exception_message="Resulting flag was found to be incorrect"
-            )
-
-            # Exit!
-            self.debug(f"Sending exit command")
-            conn.write(f"exit\n")
-            conn.close()
+            assert_in(profile['prename'], resp.text, "Resulting prename was found to be incorrect")
+            assert_in(profile['lastname'], resp.text, "Resulting lastname was found to be incorrect")
+            assert_in(profile['date'], resp.text, "Resulting date was found to be incorrect")
+            assert_in(profile['time'], resp.text, "Resulting time found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
@@ -379,8 +329,7 @@ class testifyChecker(BaseChecker):
 
         self.register(profile['username'], password)
 
-        app_id = self.make_appointment(self.flag, filename, username, password,
-                                       profile['lastname'], profile['date'], profile['time'])
+        app_id = self.make_appointment(self.flag, profile['lastname'], filename, profile['date'], profile['time'], )
         route = '/get_id' + str(app_id)
 
         kwargs = {
