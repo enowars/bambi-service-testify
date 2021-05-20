@@ -123,7 +123,7 @@ class testifyChecker(BaseChecker):
             profile = get_profile()
             password = get_random_string()
             self.register(profile['username'], password)
-            appointment_id = self.make_appointment(self.flag, profile['lastname'], "filename", profile['date'],
+            appointment_id = self.make_appointment(self.flag, profile['lastname'], profile['username'], profile['date'],
                                                    profile['time'], profile['file'])
 
             # store in db
@@ -172,8 +172,8 @@ class testifyChecker(BaseChecker):
             username = profile['username']
             password = get_random_string()
             self.register(username, password)
-            app_id = self.make_appointment(profile['prename'], profile['lastname'], "filename", profile['date'], profile['time'],
-                                           profile['file'])
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['username'],
+                                           profile['date'], profile['time'],profile['file'])
 
             self.chain_db = {
                 'profile': profile,
@@ -329,7 +329,8 @@ class testifyChecker(BaseChecker):
 
         self.register(profile['username'], password)
 
-        app_id = self.make_appointment(self.flag, profile['lastname'], filename, profile['date'], profile['time'], )
+        app_id = self.make_appointment(self.flag, profile['lastname'], filename, profile['date'], profile['time'],
+                                       profile['file'])
         route = '/get_id' + str(app_id)
 
         kwargs = {
