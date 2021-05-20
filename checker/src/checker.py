@@ -158,47 +158,28 @@ class testifyChecker(BaseChecker):
             raise EnoException("Wrong variant_id provided")
 
     def putnoise(self):  # type: () -> None
-        """
-        This method stores noise in the service. The noise should later be recoverable.
-        The difference between noise and flag is, that noise does not have to remain secret for other teams.
-        This method can be called many times per round. Check how often using self.variant_id.
-        On error, raise an EnoException.
-        :raises EnoException on error
-        :return this function can return a result if it wants
-                if nothing is returned, the service status is considered okay.
-                the preferred way to report errors in the service is by raising an appropriate enoexception
-        """
         if self.variant_id == 0:
             profile = get_profile()
             username = profile['username']
             password = get_random_string()
             self.register(username, password)
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
-                                           profile['date'], profile['time'],profile['file'])
+                                           profile['date'], profile['time'], profile['file'])
 
             self.chain_db = {
                 'profile': profile,
-                'password': password
+                'password': password,
+                'app_id': app_id
             }
         else:
             raise EnoException("Wrong variant_id provided")
 
     def getnoise(self):  # type: () -> None
-        """
-        This method retrieves noise in the service.
-        The noise to be retrieved is inside self.flag
-        The difference between noise and flag is, that noise does not have to remain secret for other teams.
-        This method can be called many times per round. Check how often using variant_id.
-        On error, raise an EnoException.
-        :raises EnoException on error
-        :return this function can return a result if it wants
-                if nothing is returned, the service status is considered okay.
-                the preferred way to report errors in the service is by raising an appropriate enoexception
-        """
         if self.variant_id == 0:
             try:
                 profile = self.chain_db["profile"]
                 password: str = self.chain_db["password"]
+                app_id: int = self.chain_db["app_id"]
             except Exception as ex:
                 self.debug("Failed to read db {ex}")
                 raise BrokenServiceException("Previous putnoise failed.")
@@ -209,6 +190,8 @@ class testifyChecker(BaseChecker):
             assert_in(profile['lastname'], resp.text, "Resulting lastname was found to be incorrect")
             assert_in(profile['date'], resp.text, "Resulting date was found to be incorrect")
             assert_in(profile['time'], resp.text, "Resulting time found to be incorrect")
+            resp = self.http_get('/get_id' + str(app_id))
+            assert_in(profile['file'], resp.content.decode('utf-8'), "Resulting file found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
@@ -221,9 +204,6 @@ class testifyChecker(BaseChecker):
                 If nothing is returned, the service status is considered okay.
                 The preferred way to report Errors in the service is by raising an appropriate EnoException
         """
-        self.debug(f"Connecting to service")
-        conn = self.connect()
-        welcome = conn.read_until(">")
 
         if self.variant_id == 0:
             # In variant 1, we'll check if the help text is available
