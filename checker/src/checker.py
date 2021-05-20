@@ -14,6 +14,7 @@ def get_profile():
     profile = fake.simple_profile()
     return {
         'username': profile['username'],
+        'password': get_random_string(),
         'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],
         'date': profile['birthdate'].strftime('%Y-%m-%d'),
@@ -122,16 +123,14 @@ class testifyChecker(BaseChecker):
     def putflag(self):  # type: () -> None
         if self.variant_id == 0:
             profile = get_profile()
-            password = get_random_string()
-            self.register(profile['username'], password)
+            self.register(profile['username'], profile['password'])
             appointment_id = self.make_appointment(self.flag, profile['lastname'], profile['filename'], profile['date'],
                                                    profile['time'], profile['file'])
 
             # store in db
             self.chain_db = {
-                "username": profile['username'],
-                "password": password,
-                "app_id": appointment_id,
+                "profile": profile,
+                "app_id": appointment_id
             }
             self.debug('successfully made appointment %s' % appointment_id)
 
@@ -142,15 +141,14 @@ class testifyChecker(BaseChecker):
         if self.variant_id == 0:
             # First we check if the previous putflag succeeded!
             try:
-                username: str = self.chain_db["username"]
-                password: str = self.chain_db["password"]
+                profile = self.chain_db["profile"]
                 app_id: str = self.chain_db["app_id"]
             except IndexError as ex:
                 self.debug(f"error getting notes from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
 
             # Let's login to the service
-            session_id = self.login(username, password)
+            session_id = self.login(profile['username'], profile['password'])
             resp = self.get_appointment(session_id)
 
             assert_in(self.flag, resp.text, "Resulting flag was found to be incorrect")
@@ -161,14 +159,13 @@ class testifyChecker(BaseChecker):
         if self.variant_id == 0:
             profile = get_profile()
             username = profile['username']
-            password = get_random_string()
+            password = profile['password']
             self.register(username, password)
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
                                            profile['date'], profile['time'], profile['file'])
 
             self.chain_db = {
                 'profile': profile,
-                'password': password,
                 'app_id': app_id
             }
         else:
@@ -178,12 +175,11 @@ class testifyChecker(BaseChecker):
         if self.variant_id == 0:
             try:
                 profile = self.chain_db["profile"]
-                password: str = self.chain_db["password"]
                 app_id: int = self.chain_db["app_id"]
             except Exception as ex:
                 self.debug("Failed to read db {ex}")
                 raise BrokenServiceException("Previous putnoise failed.")
-            session_id = self.login(profile['username'], password)
+            session_id = self.login(profile['username'], profile['password'])
             resp = self.get_appointment(session_id)
 
             assert_in(profile['prename'], resp.text, "Resulting prename was found to be incorrect")
@@ -196,103 +192,19 @@ class testifyChecker(BaseChecker):
             raise EnoException("Wrong variant_id provided")
 
     def havoc(self):  # type: () -> None
-        """
-        This method unleashes havoc on the app -> Do whatever you must to prove the service still works. Or not.
-        On error, raise an EnoException.
-        :raises EnoException on Error
-        :return This function can return a result if it wants
-                If nothing is returned, the service status is considered okay.
-                The preferred way to report Errors in the service is by raising an appropriate EnoException
-        """
-
         if self.variant_id == 0:
-            # In variant 1, we'll check if the help text is available
-            self.debug(f"Sending help command")
-            conn.write(f"help\n")
-            is_ok = conn.read_until(">")
-
-            for line in [
-                "This is a notebook service. Commands:",
-                "reg USER PW - Register new account",
-                "log USER PW - Login to account",
-                "set TEXT..... - Set a note",
-                "user  - List all users",
-                "list - List all notes",
-                "exit - Exit!",
-                "dump - Dump the database",
-                "get ID",
-            ]:
-                assert_in(line.encode(), is_ok, "Received incomplete response.")
-
+            # test create user
+            profile = get_profile()
+            username = profile['username']
+            password = profile['password']
+            self.register(username, password)
         elif self.variant_id == 1:
-            # In variant 2, we'll check if the `user` command still works.
-            username = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-            password = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-
-            # Register and login a dummy user
-            self.register_user(conn, username, password)
-            self.login_user(conn, username, password)
-
-            self.debug(f"Sending user command")
-            conn.write(f"user\n")
-            ret = conn.readline_expect(
-                "User 0: ",
-                read_until=b">",
-                exception_message="User command does not return any users",
-            )
-
-            if username:
-                assert_in(username.encode(), ret, "Flag username not in user output")
-
+            pass
         elif self.variant_id == 2:
-            # In variant 2, we'll check if the `list` command still works.
-            username = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-            password = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=12)
-            )
-            randomNote = "".join(
-                random.choices(string.ascii_uppercase + string.digits, k=36)
-            )
-
-            # Register and login a dummy user
-            self.register_user(conn, username, password)
-            self.login_user(conn, username, password)
-
-            self.debug(f"Sending command to save a note")
-            conn.write(f"set {randomNote}\n")
-            conn.read_until(b"Note saved! ID is ")
-
-            try:
-                noteId = conn.read_until(b"!\n>").rstrip(b"!\n>").decode()
-            except Exception as ex:
-                self.debug(f"Failed to retrieve note: {ex}")
-                raise BrokenServiceException("Could not retrieve NoteId")
-
-            assert_equals(len(noteId) > 0, True, message="Empty noteId received")
-
-            self.debug(f"{noteId}")
-
-            self.debug(f"Sending list command")
-            conn.write(f"list\n")
-            conn.readline_expect(
-                noteId.encode(),
-                read_until=b'>',
-                exception_message="List command does not work as intended"
-            )
-
+            pass
         else:
             raise EnoException("Wrong variant_id provided")
 
-        # Exit!
-        self.debug(f"Sending exit command")
-        conn.write(f"exit\n")
-        conn.close()
 
     def exploit(self):
         """
