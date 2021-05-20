@@ -8,11 +8,6 @@ import random
 import string
 
 
-#### Checker Tenets
-# A checker SHOULD not be easily identified by the examination of network traffic => This one is not satisfied, because our usernames and notes are simple too random and easily identifiable.
-# A checker SHOULD use unusual, incorrect or pseudomalicious input to detect network filters => This tenet is not satisfied, because we do not send common attack strings (i.e. for SQL injection, RCE, etc.) in our notes or usernames.
-####
-
 
 def get_random_string():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
@@ -31,19 +26,6 @@ def tuple_string_to_list(test_str):
 
 
 class testifyChecker(BaseChecker):
-    """
-    Change the methods given here, then simply create the class and .run() it.
-    Magic.
-    A few convenient methods and helpers are provided in the BaseChecker.
-    ensure_bytes ans ensure_unicode to make sure strings are always equal.
-    As well as methods:
-    self.connect() connects to the remote server.
-    self.get and self.post request from http.
-    self.chain_db is a dict that stores its contents to a mongodb or filesystem.
-    conn.readline_expect(): fails if it's not read correctly
-    To read the whole docu and find more goodies, run python -m pydoc enochecker
-    (Or read the source, Luke)
-    """
 
     ##### EDIT YOUR CHECKER PARAMETERS
     flag_variants = 1
@@ -126,16 +108,6 @@ class testifyChecker(BaseChecker):
         return resp
 
     def putflag(self):  # type: () -> None
-        """
-        This method stores a flag in the service.
-        In case multiple flags are provided, self.variant_id gives the appropriate index.
-        The flag itself can be retrieved from self.flag.
-        On error, raise an Eno Exception.
-        :raises EnoException on error
-        :return this function can return a result if it wants
-                if nothing is returned, the service status is considered okay.
-                the preferred way to report errors in the service is by raising an appropriate enoexception
-        """
         if self.variant_id == 0:
             username = get_random_string()
             password = get_random_string()
@@ -153,15 +125,6 @@ class testifyChecker(BaseChecker):
             raise EnoException("Wrong variant_id provided")
 
     def getflag(self):  # type: () -> None
-        """
-        This method retrieves a flag from the service.
-        Use self.flag to get the flag that needs to be recovered and self.round to get the round the flag was placed in.
-        On error, raise an EnoException.
-        :raises EnoException on error
-        :return this function can return a result if it wants
-                if nothing is returned, the service status is considered okay.
-                the preferred way to report errors in the service is by raising an appropriate enoexception
-        """
         if self.variant_id == 0:
             # First we check if the previous putflag succeeded!
             try:
