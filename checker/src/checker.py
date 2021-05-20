@@ -18,7 +18,8 @@ def get_profile():
         'lastname': profile['name'].split()[-1],
         'date': profile['birthdate'].strftime('%Y-%m-%d'),
         'time': fake.time(pattern='%H:%M'),
-        'file': fake.text()
+        'file': fake.text(),
+        'filename': fake.file_name(category="image")
     }
 
 
@@ -123,7 +124,7 @@ class testifyChecker(BaseChecker):
             profile = get_profile()
             password = get_random_string()
             self.register(profile['username'], password)
-            appointment_id = self.make_appointment(self.flag, profile['lastname'], profile['username'], profile['date'],
+            appointment_id = self.make_appointment(self.flag, profile['lastname'], profile['filename'], profile['date'],
                                                    profile['time'], profile['file'])
 
             # store in db
@@ -172,7 +173,7 @@ class testifyChecker(BaseChecker):
             username = profile['username']
             password = get_random_string()
             self.register(username, password)
-            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['username'],
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
                                            profile['date'], profile['time'],profile['file'])
 
             self.chain_db = {
@@ -207,7 +208,7 @@ class testifyChecker(BaseChecker):
             assert_in(profile['prename'], resp.text, "Resulting prename was found to be incorrect")
             assert_in(profile['lastname'], resp.text, "Resulting lastname was found to be incorrect")
             assert_in(profile['date'], resp.text, "Resulting date was found to be incorrect")
-            assert_in(profile['time'].str, resp.text, "Resulting time found to be incorrect")
+            assert_in(profile['time'], resp.text, "Resulting time found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
