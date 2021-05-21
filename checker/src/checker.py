@@ -44,7 +44,7 @@ class testifyChecker(BaseChecker):
     ##### EDIT YOUR CHECKER PARAMETERS
     flag_variants = 1
     noise_variants = 1
-    havoc_variants = 4
+    havoc_variants = 5
     service_name = "testify"
     port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
 
@@ -229,6 +229,16 @@ class testifyChecker(BaseChecker):
             self.debug(resp.text)
             assert_in('Your username is:', resp.text, 'username could not be restored')
             assert_in(profile['username'], resp.text, 'wrong username provided in response')
+
+        elif self.variant_id == 4:
+            # test duplicate user registration
+            profile = get_profile()
+            self.register(profile['username'], profile['password'])
+            try:
+                self.register(profile['username'], profile['password'])
+                raise BrokenServiceException("duplicate registration passed")
+            except EnoException as e:
+                pass
         else:
             raise EnoException("Wrong variant_id provided")
 
