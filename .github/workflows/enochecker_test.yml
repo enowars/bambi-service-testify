@@ -3,10 +3,10 @@ name: enochecker_test
 on:
   push:
     branches:
-      - "runner"
+      - "main"
   pull_request:
     branches:
-      - "runner"
+      - "main"
   schedule:
     - cron: "0 0 * * *"
 
