@@ -44,7 +44,7 @@ class testifyChecker(BaseChecker):
     ##### EDIT YOUR CHECKER PARAMETERS
     flag_variants = 1
     noise_variants = 1
-    havoc_variants = 3
+    havoc_variants = 4
     service_name = "testify"
     port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
 
