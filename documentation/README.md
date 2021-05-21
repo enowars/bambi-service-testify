@@ -1,86 +1,38 @@
-Service documentation
+Testify Service documentation
 ======================
-This is the place to keep important documentation details about your service.
 
-# Vulnerabilities
+# <ins>Vulnerabilities
 
-Please keep track of your intended vulnerabilities here:
+The Testify Service consists of two different Vulnerabilities which must be exploited after each other to get access 
+to the FLAGSTORE
 
-## Debug enabled
+## VULN #1: User Password Hash Exposure
 
-- Category: Misconfiguration
-- Difficulty: Easy
+- Category: Sensitive Data Exposure
+- Difficulty: Medium
 
-When `self.debug` is set to `True`, the `dump` command will list all users and their notes. 
+When registering a new user, a `.sql` dump file of the user database containing the password hashes is created.  
+The attacker can retrieve this dump file by using a modified file name when uploading his ID in the appointments section.
 
-## Account Takeover
+## VULN #2: Pass-The-Hash
 
 - Category: Authentication
 - Difficulty: Medium
 
-When registering a new user, the service does not check if the user already exists and simply overwrites the password (`self.users[reg_user] = reg_pw`). The list of existing users can be obtained with the `user` command.
+The password is not allowed to contain any special characters other than ASCII. If the user passes a password string,
+that does include non-ASCII characters (*e.g. a password hash obtained by VULN#1*) the hashing of the input password string 
+is skipped and directly compared to the hash in the user credential databse.
 
-## Arbitrary Read or Write (Account Takeover v2)
 
-- Category: Path traversal
-- Difficulty: Medium
 
-The `FilesystemDict` uses user-supplied input when constructing the file paths. This could be used to write JSON-encoded data to any files. 
+# <ins>Exploits
 
-The impact has to be further analyzed. It at least leads to another account takeover (overwrite the password for other users, i.e. using `reg ../users/foo bar`).
+Two different exploits for VULN#1 and VULN#2 need to be run after each other to obtain a flag.
 
-*Note:* Without a proper impact analysis, we would classify this issue as a `unintended` vulnerability. Please try to keep such issues to a minimum and document them nonetheless.
+## VULN #1 :
 
-# Exploits
-
-For each vulnerability, you should have a working example exploit ready! 
-
-## Debug enabled:
-
-Connect to the service and run `dump`:
-
-```
-gehaxelt@LagTop ~> nc 192.168.2.112 2323
-Welcome to the 1337 testify!
-> dump
-Users:
-test:test
-foo:bar
-     Note 0:acbd18db4cc2f85cedef654fccc4a4d8:foo
-     Note 1:37b51d194a7513e45b56f6524f2d51f2:bar
-     Note 2:acbd18db4cc2f85cedef654fccc4a4d8:foo
-4FOBMO10HWLC:EDPWN79U2KNL
-I4K3P0SK3PST:CK5FALD39Y0S
-B70YKMW72KUR:79Y5IM7FD7O8
-GB7QC0DKYXPS:89TY8HI6OCBA
-NXPTITQUSN2M:WYIWSGRZNKTX
-6699DPYPAQDL:7IFEPP3P3LBI
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-MPG81XWFHNE8:H8KP8VECBQOR
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-QN973IXF53HT:9BUVY6JNMGIW
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-UI2WTY7E7KC5:87SB830QHVX3
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-XXPLIXZ9ZN1Q:F88L3J4GA2LE
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-N43LU1348D19:YWT9TFCSVA2T
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-3DP6COPE6GMX:OI9437MJORZR
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-I8ZUNTWZ0Y0Q:B3AI1LN9SAAE
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-JUACZ5J3D475:5RNZ1ETOFBS6
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-KGFZNGHROLUS:05826L6X39XM
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-FV9VM13K8MGF:POUIW5CM6PY2
-     Note 0:73c94f6925fea8202b5b96dbc018ad00:ENOTESTFLAG
-XAHOKR4QD63O:VENSD82XO1XM
-     Note 0:199480a3640248d5ea679b596d91c350:SKLNAYZAG7QX65RTMW3DCZAKPS9OC0TFH6GH
-```
-
-The flags are in the output.
+1. Make an appointment containing a file with arbitrary content but using the filename `../online_users/dump.sql`
+2. In the appointments overview section 
 
 ## Account Takeover
 
