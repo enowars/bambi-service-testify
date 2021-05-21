@@ -41,7 +41,7 @@ Connect to the service and run `dump`:
 
 ```
 gehaxelt@LagTop ~> nc 192.168.2.112 2323
-Welcome to the 1337 n0t3b00k!
+Welcome to the 1337 testify!
 > dump
 Users:
 test:test
@@ -88,7 +88,7 @@ Connect to the service and use the `user` command to obtain a list of users:
 
 ```
 gehaxelt@LagTop ~ [130]> nc 192.168.2.112 2323
-Welcome to the 1337 n0t3b00k!
+Welcome to the 1337 testify!
 > user
 User 0: test
 User 1: foo
@@ -130,7 +130,7 @@ Connect to the service and list all users:
 
 ```
 gehaxelt@LagTop ~/C/A/e/service-example (cleanup)> nc 192.168.2.112 2323
-Welcome to the 1337 n0t3b00k!
+Welcome to the 1337 testify!
 > users
 User 0: 0WTC89S0Y67Y
 User 1: HWG5RBYEQX3Y
@@ -154,7 +154,7 @@ Use the username(s) and the `reg` command to set a new password by abusing the p
 
 ```
 gehaxelt@LagTop ~/C/A/e/service-example (cleanup)> nc 192.168.2.112 2323
-Welcome to the 1337 n0t3b00k!
+Welcome to the 1337 testify!
 > reg ../users/foo bar
 User successfully registered
 > log foo bar

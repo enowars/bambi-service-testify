@@ -1,0 +1,13 @@
+<div class="col">
+    <div class="card" id="appointment_{{card_id}}">
+        <img src="{{ url_for('static', filename='card.jpg') }}" class="card-img-top" alt="...">
+        <div class="card-body">
+            <h5 class="card-title">{{card_name}}</h5>
+            <p class="card-text">{{card_info}}</p>
+            <p class="card-text"><a target="_blank" href="{{url_for('get_id', appointment_id=card_id)}}">Download ID</a></p>
+        </div>
+        <div class="card-footer">
+            <small class="text-muted">{{card_date}}</small>
+        </div>
+    </div>
+</div>
