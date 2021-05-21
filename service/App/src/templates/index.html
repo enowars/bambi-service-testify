@@ -110,11 +110,11 @@
                         <label class="btn btn-outline-primary" for="radio_signup">Sign up</label>
                     </div>
 
-                    <input type="email" id="email" class="fadeIn email" name="email" placeholder="email"
+                    <input type="email" id="email" class="fadeIn email login-form" name="email" placeholder="email"
                            autocomplete="off" style="display: none">
-                    <input type="text" id="user_login" class="fadeIn second" name="username" placeholder="username"
+                    <input type="text" id="user_login" class="fadeIn second login-form" name="username" placeholder="username"
                            autocomplete="off" required>
-                    <input type="password" id="password" class="fadeIn third" name="password" placeholder="password"
+                    <input type="password" id="password" class="fadeIn third login-form" name="password" placeholder="password"
                            autocomplete="off" required>
                     <input type="submit" id="login" class="fadeIn fourth" name="login" value="Login">
                 </form>
@@ -149,16 +149,17 @@ pw.on('input', function (evt) {
     let value = evt.target.value
 
     if (value.length === 0) {
-        evt.target.className = ''
+        evt.target.classList.remove('valid')
+        evt.target.classList.remove('invalid')
         $('.password-error').hide();
         return
     }
 
     if (/^[\x21-\x7E]*$/.test(value)) {     // test for normal valid ascii chars
-        evt.target.className = 'valid'
+        evt.target.classList.add('valid')
         $('.password-error').hide();
     } else {
-        evt.target.className = 'invalid'
+        evt.target.classList.add('invalid')
         $('.password-error').show();
     }
 })
