@@ -44,7 +44,7 @@ class testifyChecker(BaseChecker):
     ##### EDIT YOUR CHECKER PARAMETERS
     flag_variants = 1
     noise_variants = 1
-    havoc_variants = 3
+    havoc_variants = 5
     service_name = "testify"
     port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
 
@@ -84,6 +84,7 @@ class testifyChecker(BaseChecker):
         res = self.http_post('/login', **kwargs)
         if res.status_code != 200:
             raise BrokenServiceException("could not login user at service")
+        assert_in('consider uploading your ID', res.text, 'login failed: not redirected to appointment page')
 
     def make_appointment(self, prename, lastname, filename, date, time, file):
         """
@@ -199,9 +200,45 @@ class testifyChecker(BaseChecker):
             password = profile['password']
             self.register(username, password)
         elif self.variant_id == 1:
-            pass
+            # test create user and login
+            profile = get_profile()
+            username = profile['username']
+            password = profile['password']
+            self.register(username, password)
+            self.login(username, password)
         elif self.variant_id == 2:
-            pass
+            # test show online users
+            profile1 = get_profile()
+            profile2 = get_profile()
+            self.register(profile1['username'], profile1['password'])
+            self.register(profile2['username'], profile2['password'])
+            resp = self.http_get('/')
+            self.debug(resp.text)
+            assert_in("&#39;" + profile1['username'] + "&#39;", resp.text, f'username {profile1["username"]} not '
+                                                                           f'found in online users')
+            assert_in("&#39;" + profile2['username'] + "&#39;", resp.text, f'username {profile2["username"]} not '
+                                                                           f'found in online users')
+        elif self.variant_id == 3:
+            # test restore username
+            profile = get_profile()
+            self.register(profile['username'], profile['password'])
+            kwargs = {
+                'data': {'email': profile['username'] + '@' + profile['username'] + '.de'}
+            }
+            resp = self.http_post('/restore_username', **kwargs)
+            self.debug(resp.text)
+            assert_in('Your username is:', resp.text, 'username could not be restored')
+            assert_in(profile['username'], resp.text, 'wrong username provided in response')
+
+        elif self.variant_id == 4:
+            # test duplicate user registration
+            profile = get_profile()
+            self.register(profile['username'], profile['password'])
+            try:
+                self.register(profile['username'], profile['password'])
+                raise BrokenServiceException("duplicate registration passed")
+            except EnoException as e:
+                pass
         else:
             raise EnoException("Wrong variant_id provided")
 
