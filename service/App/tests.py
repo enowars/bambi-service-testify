@@ -87,12 +87,6 @@ class TestDirectoryTraversal(unittest.TestCase):
         download = rq.get(url, allow_redirects=True, cookies=cookies)
         self.assertEqual(download.content.decode('ascii'), 'tesfile')
 
-    def test_get_hashes(self):
-        filename = '../online_users/hashes.txt'
-        url, cookies = send_file_appointment(filename)
-
-        download = rq.get(url, allow_redirects=True, cookies=cookies)
-        self.assertEqual(download.content.decode('ascii'), 'secret hashes stored')
 
     def test_get_dump(self):
         filename = '../online_users/dump.sql'

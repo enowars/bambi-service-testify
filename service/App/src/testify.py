@@ -30,7 +30,7 @@ def make_appointment():
     if session_id and prename and lastname and date and time:
         appointment = {
             'name': prename + ' ' + lastname,
-            'extra_info': 'empty',      # TODO: implement random address
+            'extra_info': 'Random Street 123',      # TODO: implement random address
             'date': date,
             'time': time,
             'filename': file.filename if file else None
