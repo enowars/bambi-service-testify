@@ -17,7 +17,7 @@ def get_user(username, password):
         'email': username + '@' + username + '.de',
         'login': 'signup'
     }
-    req = rq.post('http://localhost:6597/login', data=obj)
+    req = rq.post('http://localhost:8597/login', data=obj)
     return req.history[0].cookies.get('sessionID')
 
 
@@ -36,13 +36,13 @@ def send_file_appointment(filename):
     }
     file = open('test_ids.txt', 'rb')
     files = {'id_image': (filename, file, 'application/octet-stream')}
-    # req = rq.Request('POST', 'http://localhost:6597/make_appointment', data=data, files=files, cookies=cookies).prepare()
+    # req = rq.Request('POST', 'http://localhost:8597/make_appointment', data=data, files=files, cookies=cookies).prepare()
     # print(req.body.decode('ascii'))
-    req = rq.post('http://localhost:6597/make_appointment', data=data, files=files, cookies=cookies)
+    req = rq.post('http://localhost:8597/make_appointment', data=data, files=files, cookies=cookies)
     file.close()
     url = req.text[req.text.find('/get_id'):]
     url = url[:url.find('"')]
-    url = 'http://localhost:6597' + url
+    url = 'http://localhost:8597' + url
     return url, cookies
 
 
@@ -66,7 +66,7 @@ class TestPassTheHashVuln(unittest.TestCase):
                 bytes.fromhex('3B89BCF90E89EDCDED3A5A2C9EF09B42E4DC8C6546684673D94075C54F31B6B4')).decode('ascii'),
             'login': 'signin'
         }
-        req = rq.post('http://localhost:6597/login', data=obj)
+        req = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(200, req.status_code)
 
     def test_pth2(self):
@@ -75,7 +75,7 @@ class TestPassTheHashVuln(unittest.TestCase):
             'password': base64.b64encode(bytes.fromhex('3B89B4')).decode('ascii'),
             'login': 'signin'
         }
-        req = rq.post('http://localhost:6597/login', data=obj)
+        req = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(401, req.status_code)
 
 
@@ -102,7 +102,7 @@ class TestDirectoryTraversal(unittest.TestCase):
             'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
             'login': 'signin'
         }
-        req = rq.post('http://localhost:6597/login', data=obj)
+        req = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(200, req.status_code)
 
     def test_get_all_dumps(self):
@@ -120,7 +120,7 @@ class TestDirectoryTraversal(unittest.TestCase):
                 'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
                 'login': 'signin'
             }
-            req = rq.post('http://localhost:6597/login', data=obj)
+            req = rq.post('http://localhost:8597/login', data=obj)
             self.assertEqual(200, req.status_code)
         print("tested %d user credentials" % len(user_list))
 
@@ -134,7 +134,7 @@ class TestSimpleLogin(unittest.TestCase):
             'email': user + '@' + user + '.de',
             'login': 'signup'
         }
-        req = rq.post('http://localhost:6597/login', data=obj)
+        req = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(200, req.status_code)
 
     def test_check_user(self):
@@ -145,13 +145,13 @@ class TestSimpleLogin(unittest.TestCase):
             'email': user + '@' + user + '.de',
             'login': 'signup'
         }
-        req = rq.post('http://localhost:6597/login', data=obj)
+        req = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(200, req.status_code)
         obj['login'] = 'signin'
-        req2 = rq.post('http://localhost:6597/login', data=obj)
+        req2 = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(200, req2.status_code)
         obj['password'] = base64.b64encode(b'mysecretPass').decode('ascii')
-        req3 = rq.post('http://localhost:6597/login', data=obj)
+        req3 = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(401, req3.status_code)
 
     def test_duplicate_user(self):
@@ -162,9 +162,9 @@ class TestSimpleLogin(unittest.TestCase):
             'email': user + '@' + user + '.de',
             'login': 'signup'
         }
-        req = rq.post('http://localhost:6597/login', data=obj)
+        req = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(200, req.status_code)
-        req2 = rq.post('http://localhost:6597/login', data=obj)
+        req2 = rq.post('http://localhost:8597/login', data=obj)
         self.assertEqual(401, req2.status_code)
 
 

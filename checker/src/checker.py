@@ -50,7 +50,7 @@ class testifyChecker(BaseChecker):
     havoc_variants = 5
     exploit_variants = 1
     service_name = "testify"
-    port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
+    port = 8597  # The port will automatically be picked up as default by self.connect and self.http.
 
     ##### END CHECKER PARAMETERS
 
