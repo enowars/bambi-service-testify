@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 import base64
+import logging
 import re
 
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
-from enochecker.utils import SimpleSocket, assert_equals, assert_in
+from enochecker.utils import assert_in
 import random
 import string
 from faker import Faker
 
+fake = Faker()
+
 
 def get_profile():
-    fake = Faker()
+    logging.getLogger('faker').setLevel(logging.ERROR)
     profile = fake.simple_profile()
     return {
         'username': profile['username'],
@@ -243,7 +246,6 @@ class testifyChecker(BaseChecker):
         else:
             raise EnoException("Wrong variant_id provided")
 
-
     def exploit(self):
         if self.variant_id > 0:
             raise EnoException("Wrong variant_id provided")
@@ -280,9 +282,11 @@ class testifyChecker(BaseChecker):
                 }
                 res2 = self.http_post('/login', **kwargs2)
                 search_string += res2.text
-            if not self.search_flag(search_string):
+            flag = self.search_flag(search_string)
+            if not flag:
                 raise BrokenServiceException("Resulting flag was found to be incorrect")
-
+            else:
+                return flag
 
 
 app = testifyChecker.service  # This can be used for uswgi.
