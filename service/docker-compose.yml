@@ -11,4 +11,5 @@ services:
     build:
       context: mysql
       dockerfile: Dockerfile
-
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
