@@ -16,7 +16,7 @@ def get_profile():
     logging.getLogger('faker').setLevel(logging.ERROR)
     profile = fake.simple_profile()
     return {
-        'username': profile['username'],
+        'username': profile['username'] + str(random.randint(1000, 9999)),
         'password': get_random_string(),
         'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],
