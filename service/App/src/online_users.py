@@ -17,6 +17,6 @@ def get_online_users():
         f.close()
         arr = tuple_string_to_list(sql)
         users = [i[1] for i in arr]
-        return users
+        return users[-20:]
     except FileNotFoundError:
         return []
