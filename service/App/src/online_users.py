@@ -11,12 +11,4 @@ def tuple_string_to_list(test_str):
 
 
 def get_online_users():
-    try:
-        f = open("user_data/online_users/dump.sql", "r")
-        sql = f.read()[27:-2]
-        f.close()
-        arr = tuple_string_to_list(sql)
-        users = [i[1] for i in arr]
-        return users[-20:]
-    except FileNotFoundError:
-        return []
+    return []
