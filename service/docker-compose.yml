@@ -11,5 +11,9 @@ services:
     build:
       context: mysql
       dockerfile: Dockerfile
+    volumes:
+      - data-service:/var/lib/mysql
     cap_add:
       - SYS_NICE  # CAP_SYS_NICE
+volumes:
+  data-service:
