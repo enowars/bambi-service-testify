@@ -29,7 +29,7 @@ def get_profile():
 
 
 def get_random_string():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=30))
 
 
 def tuple_string_to_list(test_str):
