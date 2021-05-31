@@ -2,6 +2,7 @@
 import base64
 import logging
 import re
+import time
 
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import assert_in
@@ -16,7 +17,7 @@ def get_profile():
     logging.getLogger('faker').setLevel(logging.ERROR)
     profile = fake.simple_profile()
     return {
-        'username': profile['username'],
+        'username': profile['username'] + str(random.randint(1000, 9999)),
         'password': get_random_string(),
         'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],
@@ -50,7 +51,7 @@ class testifyChecker(BaseChecker):
     havoc_variants = 5
     exploit_variants = 1
     service_name = "testify"
-    port = 6597  # The port will automatically be picked up as default by self.connect and self.http.
+    port = 8597  # The port will automatically be picked up as default by self.connect and self.http.
 
     ##### END CHECKER PARAMETERS
 
@@ -147,8 +148,7 @@ class testifyChecker(BaseChecker):
             # First we check if the previous putflag succeeded!
             try:
                 profile = self.chain_db["profile"]
-                app_id: str = self.chain_db["app_id"]
-            except IndexError as ex:
+            except Exception as ex:
                 self.debug(f"error getting notes from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
 
@@ -213,14 +213,11 @@ class testifyChecker(BaseChecker):
         elif self.variant_id == 2:
             # test show online users
             profile1 = get_profile()
-            profile2 = get_profile()
             self.register(profile1['username'], profile1['password'])
-            self.register(profile2['username'], profile2['password'])
+            time.sleep(0.5)
             resp = self.http_get('/')
             self.debug(resp.text)
             assert_in("&#39;" + profile1['username'] + "&#39;", resp.text, f'username {profile1["username"]} not '
-                                                                           f'found in online users')
-            assert_in("&#39;" + profile2['username'] + "&#39;", resp.text, f'username {profile2["username"]} not '
                                                                            f'found in online users')
         elif self.variant_id == 3:
             # test restore username

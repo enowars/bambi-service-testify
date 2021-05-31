@@ -5,12 +5,11 @@ services:
       context: App
       dockerfile: Dockerfile
     ports:
-      - "6597:8000"
+      - "8597:8000"
     container_name: testify
   testify-mysql:
     build:
       context: mysql
       dockerfile: Dockerfile
-    ports:
-      - "3306:3306" # TODO: remove this later, only for debugging
-
+    cap_add:
+      - SYS_NICE  # CAP_SYS_NICE
