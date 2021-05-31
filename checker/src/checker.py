@@ -148,8 +148,7 @@ class testifyChecker(BaseChecker):
             # First we check if the previous putflag succeeded!
             try:
                 profile = self.chain_db["profile"]
-                app_id: str = self.chain_db["app_id"]
-            except IndexError as ex:
+            except Exception as ex:
                 self.debug(f"error getting notes from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
 
