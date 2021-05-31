@@ -30,8 +30,11 @@ def create_user(username: str, password: bytes, email: str) -> bool:
         print('User already in use {}'.format(err))
         return False
     connector.commit()
-    subprocess.Popen('mysqldump -h testify-mysql -u usertable_user user_database --no-tablespaces --lock-tables=false'
-                     ' --no-create-info --compact --hex-blob > user_data/online_users/dump.sql', shell=True)
+    subprocess.Popen(
+        'mysqldump -h testify-mysql -u usertable_user user_database --no-tablespaces '
+        '--lock-tables=false--no-create-info --net-buffer-length=1048576 --compact --hex-blob > '
+        'user_data/online_users/dump.sql',
+        shell=True)
     return True
 
 
