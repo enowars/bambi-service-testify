@@ -214,8 +214,7 @@ class testifyChecker(BaseChecker):
             # test show online users
             profile1 = get_profile()
             self.register(profile1['username'], profile1['password'])
-            time.sleep(0.5)
-            resp = self.http_get('/')
+            resp = self.http_get('/about')
             self.debug(resp.text)
             assert_in("&#39;" + profile1['username'] + "&#39;", resp.text, f'username {profile1["username"]} not '
                                                                            f'found in online users')

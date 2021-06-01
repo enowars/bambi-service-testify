@@ -12,8 +12,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
-    users = ou.get_online_users()
-    return render_template("index.html", online_users='  -  '.join(users))
+    return render_template("index.html")
 
 
 @app.route('/make_appointment', methods=['POST'])
@@ -91,6 +90,12 @@ def appointments():
             return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
+
+
+@app.route('/about')
+def about():
+    users = ou.get_online_users()
+    return render_template('about.html', online_users='  -  '.join(users))
 
 
 @app.route('/logout')
