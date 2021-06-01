@@ -9,6 +9,6 @@ RUN ./startup.sh
 COPY . .
 EXPOSE 8000
 ENV MYSQL_PWD=userpass
-
 WORKDIR src
-CMD ["python3", "testify.py"]
+
+ENTRYPOINT [ "gunicorn", "-c", "gunicorn.conf.py", "testify:app" ]
