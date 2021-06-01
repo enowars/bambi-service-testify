@@ -1,2 +1,0 @@
-#!/bin/bash
-mysqldump -h testify-mysql -u usertable_user user_database --no-tablespaces --lock-tables=false --no-create-info --net-buffer-length=1048576 --extended-insert=FALSE --compact --hex-blob > sql_dump.sql
