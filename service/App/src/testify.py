@@ -138,4 +138,4 @@ def get_id(appointment_id):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True) # TODO: remove debug later
+    app.run(host='0.0.0.0', port=8000)
