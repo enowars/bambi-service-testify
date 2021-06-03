@@ -1,6 +1,5 @@
 import hashlib
 import os
-import subprocess
 
 import mysql.connector
 
@@ -33,11 +32,6 @@ def create_user(username: str, password: bytes, email: str) -> bool:
     return True
 
 
-def set_hostname(host: str):  # for debugging purposes
-    global hostname
-    hostname = host
-
-
 def check_user(username: str, password: bytes) -> bool:
     connector = get_connector()
     cursor = connector.cursor()
@@ -60,7 +54,6 @@ def get_hash(string, salt):
     if checkASCII(string):
         return hashlib.pbkdf2_hmac('sha256', string, salt, 100000)
     else:
-        print("error! password not valid ascii!")
         return string
 
 
