@@ -134,7 +134,7 @@ def get_id(appointment_id):
         path = am.get_id_file(session_id, appointment_id)
         if path:
             return send_file(path, as_attachment=True)
-    return "session and appointment id do not match or no ID uploaded!!", 403
+    return "session and appointment id do not match or no ID uploaded!", 403
 
 
 if __name__ == '__main__':

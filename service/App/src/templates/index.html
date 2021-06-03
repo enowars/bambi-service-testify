@@ -18,20 +18,20 @@
 <!-- Navigation-->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="#!">Testify Service</a>
+        <a class="navbar-brand" href="{{ url_for('index') }}">Testify Service</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
                 aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span
                 class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="navbarResponsive">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item active">
-                    <a class="nav-link" href="#!">
+                    <a class="nav-link" href="{{ url_for('index') }}">
                         Home
                     </a>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="#!">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="#!">Services</a></li>
-                <li class="nav-item"><a class="nav-link" href="#loginsection">Log In</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('about')}}">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('appointments') }}">Appointments</a></li>
+                <li class="nav-item"><a class="nav-link" href="#loginsection">Login</a></li>
             </ul>
         </div>
         <span class="navbar-text">
@@ -58,10 +58,10 @@
 <!-- Login section-->
 <section id="loginsection" class="py-5">
     <div class="container">
-        <h1>Log in</h1>
-        <p class="lead">Lorem ipsum dolor sit amet, consectetur adipisicing elit.</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aliquid, suscipit, rerum quos facilis repellat
-            architecto commodi officia atque nemo facere eum non illo voluptatem quae delectus odit vel itaque amet.</p>
+        <h1>Login</h1>
+        <p class="lead">This is our secure Login section</p>
+        <p>You already got to know our awesome logo on the homepage. This logo is even more awesome if it is bordered by the security-indicating lock which means that your credentials are securely submitted to our servers.
+        Your data security is very important to us, that is why we are using state-of-the-art password hash algorithms!</p>
         <div class="inserts">
             {% if inserts %}
             {% for i in inserts %}

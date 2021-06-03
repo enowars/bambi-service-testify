@@ -18,7 +18,7 @@
 <!-- Navigation-->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container">
-        <a class="navbar-brand" href="#!">Testify Service</a>
+        <a class="navbar-brand" href="{{ url_for('index') }}">Testify Service</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive"
                 aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation"><span
                 class="navbar-toggler-icon"></span></button>
@@ -29,13 +29,13 @@
                         Home
                     </a>
                 </li>
-                <li class="nav-item"><a class="nav-link" href="">About</a></li>
-                <li class="nav-item"><a class="nav-link" href="">Services</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Log In</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{url_for('about')}}">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('appointments') }}">Appointments</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('index') }}">Login</a></li>
             </ul>
         </div>
         <span class="navbar-text">
-            <a href="#loginsection">Login</a>
+            <a href="{{ url_for('index') }}">Login</a>
     </span>
     </div>
 </nav>
@@ -58,7 +58,7 @@
         </div>
         <div class="wrapper fadeInDown">
             <h4>Online users</h4>
-            <p>We already have a variety of people using this service! These users are currently online:</p>
+            <p>We already have a variety of people using this service! This is only a sample of currently online users:</p>
             <p>
                 <a class="btn btn-primary" data-bs-toggle="collapse" href="#onlineUsers" role="button"
                    aria-expanded="false" aria-controls="onlineUsers">
