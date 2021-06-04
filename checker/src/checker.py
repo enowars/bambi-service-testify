@@ -149,7 +149,7 @@ class testifyChecker(BaseChecker):
             try:
                 profile = self.chain_db["profile"]
             except Exception as ex:
-                self.debug(f"error getting notes from db: {ex}")
+                self.debug(f"error getting profile from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
 
             # Let's login to the service
