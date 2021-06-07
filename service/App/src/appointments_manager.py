@@ -69,7 +69,7 @@ def get_path(path: str):
         path_comp = 'user_data/ids/' + path
         matchpath = os.path.abspath(path_comp)
         if matchpath.startswith(basedir) and basedir == os.path.commonpath((basedir, matchpath)):
-            return os.path.abspath('user_data/ids/' + path)
+            return os.path.abspath('user_data/ids/' + path).replace(' ', '_')
     return None
 
 
