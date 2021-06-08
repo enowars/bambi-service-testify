@@ -265,8 +265,8 @@ class testifyChecker(BaseChecker):
             res = self.http_get(route, **kwargs)
             sql_string = res.content.decode('ascii').splitlines()
             user_list = [i.split(',')[1:3] for i in sql_string]
-            for i in range(len(user_list)-1, -1, -1):
-                elem = user_list[i]
+            for i in user_list:
+                elem = i
                 user = elem[0][1:-1]
                 hash = elem[1][2:]
                 kwargs2 = {
