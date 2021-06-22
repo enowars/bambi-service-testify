@@ -113,6 +113,13 @@ def appointments():
         return redirect(url_for('index'))
 
 
+@app.route('/appointment_info', methods=['POST'])
+def appointment_info():
+    id = request.form.get('app_id')
+    pin = request.form.get('pin')
+    # TODO: return appointment info
+
+
 @app.route('/about')
 def about():
     users = ou.get_online_users()

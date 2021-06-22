@@ -23,6 +23,7 @@ CREATE TABLE appointments (
     date DATETIME NOT NULL,
     filename VARCHAR(128),
     doctor VARCHAR(30),
+    pin VARCHAR(30) NOT NULL,
     PRIMARY KEY (appointment_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
