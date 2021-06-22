@@ -47,6 +47,9 @@ def make_appointment():
 
 @app.route('/doctors', methods=['POST', 'GET'])
 def doctors():
+    session_id = request.cookies.get('sessionID')
+    if not session_id:
+        return redirect(url_for('appointments'))
     if request.method == 'POST':
         username = request.form.get('patient_username')
         session_id = request.cookies.get('sessionID')
