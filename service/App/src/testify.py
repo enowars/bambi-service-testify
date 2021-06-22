@@ -6,6 +6,7 @@ import forgotUsername as fu
 import base64
 import bleach
 import online_users as ou
+import doctor
 
 app = Flask(__name__)
 
@@ -42,6 +43,20 @@ def make_appointment():
         return redirect(url_for('appointments', app_id=appointment_id, status='success'))
     else:
         return redirect(url_for('appointments', status='fail'))
+
+
+@app.route('/doctors', methods=['POST', 'GET'])
+def doctors():
+    if request.method == 'POST':
+        username = request.form.get('patient_username')
+        session_id = request.cookies.get('sessionID')
+        auth_user = sm.get_user_name_for_session(session_id)
+        if auth_user and doctor.check_doctor(auth_user):
+            return render_template('doctors.html', apps=doctor.get_patient_info(username))
+        else:
+            return "not authenticated!"
+    else:
+        return render_template('doctors.html')
 
 
 @app.route('/login', methods=['POST'])

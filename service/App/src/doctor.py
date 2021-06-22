@@ -16,14 +16,11 @@ def get_connector():
 def check_doctor(username: str) -> bool:
     connector = get_connector()
     cursor = connector.cursor()
-    cursor.execute(
-        "SELECT IF ((SELECT * FROM user_database.doctor_appointments "
-        "WHERE user_database.doctor_appointments.user_id = "
-        "(SELECT user_id FROM user_database.users WHERE username = %s))"
-        "OR (SELECT user_database.users.is_doctor), 1, 0)",
-        (username,))
+    cursor.execute("SELECT IF ((SELECT is_doctor FROM user_database.users WHERE username = %s) OR (SELECT "
+                   "EXISTS(SELECT * FROM user_database.appointments WHERE user_database.appointments.doctor = "
+                   "%s)), 1, 0)", (username, username))
     res = cursor.fetchone()
-    return True if res else False
+    return True if res[0] == 1 else False
 
 
 def get_patient_info(search_user: str):

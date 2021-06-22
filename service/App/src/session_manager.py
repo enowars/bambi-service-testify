@@ -70,3 +70,17 @@ def get_user_id_for_username(username: str) -> int:
         return -1
     else:
         return result[0]
+
+
+def get_user_name_for_session(session_id):
+    connector = get_connector()
+    cursor = connector.cursor()
+    sql = "SELECT user_database.users.username FROM user_database.users JOIN user_database.sessions s on users.user_id = s.user_id WHERE s.session_id = %s"
+    vals = (session_id,)
+    cursor.execute(sql, vals)
+    result = cursor.fetchone()
+    if result is None:
+        print('Error user not found')
+        return None
+    else:
+        return result[0]

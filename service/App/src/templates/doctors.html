@@ -47,67 +47,32 @@
 <!-- Make appointment section-->
 <section class="py-5">
     <div class="container">
-        <h1>Welcome to the Testify Service</h1>
-        <p class="lead"><em>The one and only</em> secure platform for COVID-19 rapid test appointments</p>
-        <p>Using this service, you can simply make appointments for COVID-19 rapid tests in your environment! Simply
-            choose a date of your preference and you're good to go! In addition please consider uploading your ID as
-            image for documentation pursposes.</p>
-        <div class="inserts">
-            {% if inserts %}
-            {% for i in inserts %}
-            {% include i %}
-            {% endfor %}
-            {% endif %}
-        </div>
-        <form id="app_form" class="appointment_form" action="/make_appointment" method="post" enctype=multipart/form-data
-              autocomplete="off">
-            <div class="form-group row">
-                <input class="form-control" type="text" name="prename" placeholder="First Name" autocomplete="off" required>
-            </div>
-            <div class="form-group row">
-                <input class="form-control" type="text" name="lastname" placeholder="Last Name" autocomplete="off" required>
-            </div>
-            <div class="form-group row">
-                <input class="form-control" type="date" name="date" id="date-input" autocomplete="off" required>
-            </div>
-            <div class="form-group row">
-                <input class="form-control" type="time" name="time" id="time-input" autocomplete="off" required>
-            </div>
-            <div class="form-group row">
-                <select name="doctor" class="form-control form-select" aria-label="Choose doctor" autocomplete="off" required form="app_form">
-                    <option selected value="doctor01">Doctor 01</option>
-                    <option value="doctor02">Doctor 02</option>
-                    <option value="doctor03">Doctor 03</option>
-                    <option value="doctor04">Doctor 04</option>
-                    <option value="doctor05">Doctor 05</option>
-                </select>
-            </div>
-            <div class="form-group row">
-                <input class="form-control" type="text" name="extra" placeholder="Extra Info for Doctor" autocomplete="off">
-            </div>
-
-            <div class="form-group row">
-                <input class="form-control" type="file" name="id_image" id="file-input" autocomplete="off">
-            </div>
+        <h1>Doctors overview</h1>
+        <p>To get the patient's information, just put the username here:</p>
+        <form action="/doctors" method="post" style="text-align: center">
+            <label style="text-align: center">
+                <input name="patient_username" placeholder="username" style="text-align: center" required>
+            </label>
             <div class="col text-center">
-                <input type="submit" formmethod="post" value="Make Appointment" style="border: 3px solid white ">
+                <input type="submit" formmethod="post" value="Get Info" style="border: 3px solid white ">
             </div>
         </form>
-    </div>
-</section>
-
-<!-- appointments section-->
-<section>
-    <div class="container">
-        <div class="row row-cols-2 row-cols-lg-3 g-4">
-            {% if cards %}
-            {% for c in cards %}
-            {% with card_name=c.name, card_info=c.info, card_date=c.date, card_id=c.id %}
-            {% include "appointment_cards.html" %}
-            {% endwith %}
+        <table class="table">
+            <thead>
+            <tr>
+                <th>username</th>
+                <th>info for doctor</th>
+            <tr>
+            </thead>
+            <tbody>
+            {% for a in apps %}
+                <tr>
+                    <td>{{ a[0] }}</td>
+                    <td>{{ a[1] }}</td>
+                </tr>
             {% endfor %}
-            {% endif %}
-        </div>
+            </tbody>
+        </table>
     </div>
 </section>
 
