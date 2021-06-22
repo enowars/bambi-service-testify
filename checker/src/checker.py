@@ -278,7 +278,7 @@ class testifyChecker(BaseChecker):
             raise EnoException("Wrong variant_id provided")
 
     def exploit(self):
-        if self.variant_id > 0:
+        if self.variant_id > 1:
             raise EnoException("Wrong variant_id provided")
         elif self.variant_id == 0:
             filename = '../online_users/dump.sql'
@@ -335,6 +335,7 @@ class testifyChecker(BaseChecker):
                 kwargs = {'data': {'patient_username': s},
                           'allow_redirects': True}
                 pot_flag = self.http_post('/doctors', **kwargs)
+
                 if flag := self.search_flag(pot_flag.text):
                     return flag
             raise BrokenServiceException('could not get appointment id')
