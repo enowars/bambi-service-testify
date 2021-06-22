@@ -13,6 +13,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def index():
+    print('hello!')
     return render_template("index.html")
 
 
@@ -26,17 +27,19 @@ def make_appointment():
     extra = request.form.get('extra')
     doctor = request.form.get('doctor')
     file = request.files.get('id_image')
+    pin = request.form.get('pin')
 
     appointment_id = None
 
-    if session_id and prename and lastname and date and time and doctor:
+    if session_id and prename and lastname and date and time and doctor and pin:
         appointment = {
             'name': prename + ' ' + lastname,
             'extra_info': extra if extra else '',
             'date': date,
             'time': time,
             'filename': file.filename if file else None,
-            'doctor': doctor
+            'doctor': doctor,
+            'pin': pin
         }
         appointment_id = am.set_appointment(session_id, appointment, file)
     if appointment_id:
@@ -113,11 +116,18 @@ def appointments():
         return redirect(url_for('index'))
 
 
-@app.route('/appointment_info', methods=['POST'])
+@app.route('/appointment_info', methods=['POST', 'GET'])
 def appointment_info():
-    id = request.form.get('app_id')
-    pin = request.form.get('pin')
-    # TODO: return appointment info
+    if request.method == 'POST':
+        id = request.form.get('app_id')
+        pin = request.form.get('pin')
+        info = am.get_info(id, pin)
+        if info:
+            return render_template('appointment_info.html', inserts=['success.html'], message=f"Your message:   {info}")
+        else:
+            return render_template('appointment_info.html', inserts=['failed.html'], message="Wrong PIN or no info specified!")
+    else:
+        return render_template('appointment_info.html')
 
 
 @app.route('/about')

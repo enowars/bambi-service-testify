@@ -12,3 +12,5 @@ ENV MYSQL_PWD=userpass
 WORKDIR src
 
 ENTRYPOINT [ "gunicorn", "-c", "gunicorn.conf.py", "testify:app" ]
+
+ENV PYTHONUNBUFFERED=TRUE

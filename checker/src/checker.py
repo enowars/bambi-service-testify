@@ -134,8 +134,8 @@ class testifyChecker(BaseChecker):
             profile = get_profile()
             self.register(profile['username'], profile['password'])
             appointment_id = self.make_appointment(self.flag, profile['lastname'], profile['filename'], profile['date'],
-                                                   profile['time'], profile['file'], profile['pin'],
-                                                   'doctor0' + str(random.randint(1, 5)))
+                                                   profile['time'], profile['file'],
+                                                   'doctor0' + str(random.randint(1, 5)), profile['pin'])
 
             # store in db
             self.chain_db = {
@@ -149,8 +149,7 @@ class testifyChecker(BaseChecker):
             self.register(profile['username'], profile['password'])
             appointment_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
                                                    profile['date'],
-                                                   profile['time'], profile['file'], profile['pin'],
-                                                   'doctor0' + str(random.randint(1, 5)))
+                                                   profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'], self.flag)
 
             # store in db
             self.chain_db = {
@@ -180,10 +179,19 @@ class testifyChecker(BaseChecker):
             # First we check if the previous putflag succeeded!
             try:
                 profile = self.chain_db["profile"]
+                app_id = self.chain_db["app_id"]
             except Exception as ex:
                 self.debug(f"error getting profile from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
-
+            kwargs = {
+                'data': {'app_id': app_id, 'pin': profile['pin']},
+                'allow_redirects': True
+            }
+            res = self.http_post('/appointment_info', **kwargs)
+            print(res.text)
+            if res.text.find('Your message') == -1:
+                raise BrokenServiceException("could not retrieve appointment info")
+            assert_in(self.flag, res.text, "Resulting flag was found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
@@ -194,8 +202,7 @@ class testifyChecker(BaseChecker):
             password = profile['password']
             self.register(username, password)
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
-                                           profile['date'], profile['time'], profile['file'], profile['pin'],
-                                           'doctor0' + str(random.randint(1, 5)))
+                                           profile['date'], profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
 
             self.chain_db = {
                 'profile': profile,
@@ -283,7 +290,7 @@ class testifyChecker(BaseChecker):
             self.http_get('/about')
 
             app_id = self.make_appointment(profile['prename'], profile['lastname'], filename, profile['date'],
-                                           profile['time'], profile['file'], profile['pin'], 'doctor0' + str(random.randint(1, 5)))
+                                           profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
             route = '/get_id' + str(app_id)
 
             kwargs = {
@@ -316,7 +323,7 @@ class testifyChecker(BaseChecker):
             password = profile['password']
 
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'], profile['date']
-                                           , profile['time'], profile['file'], profile['pin'], 'doctor0' + str(random.randint(1, 5)))
+                                           , profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
             self.register(username, password)
             users = self.http_get('/about')
 
