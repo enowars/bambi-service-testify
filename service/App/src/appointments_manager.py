@@ -35,11 +35,11 @@ def set_appointment(session_id: str, appointment, file) -> int:
     if user_id != -1:
         connector = get_connector()
         cursor = connector.cursor()
-        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename) " \
-              "VALUES (%s, %s, %s, %s, %s)"
+        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename, doctor) " \
+              "VALUES (%s, %s, %s, %s, %s, %s)"
         path = get_path(appointment['filename']) if file else None
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
-                appointment['time'], path)
+                appointment['time'], path, appointment['doctor'])
         try:
             cursor.execute(sql, vals)
             if file:

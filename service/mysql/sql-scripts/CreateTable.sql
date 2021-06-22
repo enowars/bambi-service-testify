@@ -4,6 +4,7 @@ CREATE TABLE users (
 	password BINARY(32) NOT NULL,
 	salt BINARY(32) NOT NULL,
 	email VARCHAR(255) UNIQUE NOT NULL,
+	is_doctor BOOLEAN NOT NULL DEFAULT 0,
 	PRIMARY KEY (user_id)
 );
 
@@ -21,6 +22,14 @@ CREATE TABLE appointments (
     extra_info VARCHAR(500),
     date DATETIME NOT NULL,
     filename VARCHAR(128),
+    doctor VARCHAR(30),
+    PRIMARY KEY (appointment_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE doctor_appointments (
+    appointment_id INT NOT NULL UNIQUE,
+    user_id INT NOT NULL,
     PRIMARY KEY (appointment_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );

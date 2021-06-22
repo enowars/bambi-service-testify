@@ -22,17 +22,20 @@ def make_appointment():
     lastname = request.form.get('lastname')
     date = request.form.get('date')
     time = request.form.get('time')
+    extra = request.form.get('extra')
+    doctor = request.form.get('doctor')
     file = request.files.get('id_image')
 
     appointment_id = None
 
-    if session_id and prename and lastname and date and time:
+    if session_id and prename and lastname and date and time and doctor:
         appointment = {
             'name': prename + ' ' + lastname,
-            'extra_info': 'Random Street 123',      # TODO: implement random address
+            'extra_info': extra if extra else '',
             'date': date,
             'time': time,
-            'filename': file.filename if file else None
+            'filename': file.filename if file else None,
+            'doctor': doctor
         }
         appointment_id = am.set_appointment(session_id, appointment, file)
     if appointment_id:
