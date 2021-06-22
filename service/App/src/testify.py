@@ -6,12 +6,14 @@ import forgotUsername as fu
 import base64
 import bleach
 import online_users as ou
+import doctor
 
 app = Flask(__name__)
 
 
 @app.route('/')
 def index():
+    print('hello!')
     return render_template("index.html")
 
 
@@ -22,23 +24,45 @@ def make_appointment():
     lastname = request.form.get('lastname')
     date = request.form.get('date')
     time = request.form.get('time')
+    extra = request.form.get('extra')
+    doctor = request.form.get('doctor')
     file = request.files.get('id_image')
+    pin = request.form.get('pin')
 
     appointment_id = None
 
-    if session_id and prename and lastname and date and time:
+    if session_id and prename and lastname and date and time and doctor and pin:
         appointment = {
             'name': prename + ' ' + lastname,
-            'extra_info': 'Random Street 123',      # TODO: implement random address
+            'extra_info': extra if extra else '',
             'date': date,
             'time': time,
-            'filename': file.filename if file else None
+            'filename': file.filename if file else None,
+            'doctor': doctor,
+            'pin': pin
         }
         appointment_id = am.set_appointment(session_id, appointment, file)
     if appointment_id:
         return redirect(url_for('appointments', app_id=appointment_id, status='success'))
     else:
         return redirect(url_for('appointments', status='fail'))
+
+
+@app.route('/doctors', methods=['POST', 'GET'])
+def doctors():
+    session_id = request.cookies.get('sessionID')
+    if not session_id:
+        return redirect(url_for('appointments'))
+    if request.method == 'POST':
+        username = request.form.get('patient_username')
+        session_id = request.cookies.get('sessionID')
+        auth_user = sm.get_user_name_for_session(session_id)
+        if auth_user and doctor.check_doctor(auth_user):
+            return render_template('doctors.html', apps=doctor.get_patient_info(username))
+        else:
+            return "not authenticated!"
+    else:
+        return render_template('doctors.html')
 
 
 @app.route('/login', methods=['POST'])
@@ -90,6 +114,20 @@ def appointments():
             return redirect(url_for('index'))
     else:
         return redirect(url_for('index'))
+
+
+@app.route('/appointment_info', methods=['POST', 'GET'])
+def appointment_info():
+    if request.method == 'POST':
+        id = request.form.get('app_id')
+        pin = request.form.get('pin')
+        info = am.get_info(id, pin)
+        if info:
+            return render_template('appointment_info.html', inserts=['success.html'], message=f"Your message:   {info}")
+        else:
+            return render_template('appointment_info.html', inserts=['failed.html'], message="Wrong PIN or no info specified!")
+    else:
+        return render_template('appointment_info.html')
 
 
 @app.route('/about')

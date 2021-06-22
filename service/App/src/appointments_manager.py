@@ -35,11 +35,11 @@ def set_appointment(session_id: str, appointment, file) -> int:
     if user_id != -1:
         connector = get_connector()
         cursor = connector.cursor()
-        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename) " \
-              "VALUES (%s, %s, %s, %s, %s)"
+        sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename, doctor, pin) " \
+              "VALUES (%s, %s, %s, %s, %s, %s, %s)"
         path = get_path(appointment['filename']) if file else None
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
-                appointment['time'], path)
+                appointment['time'], path, appointment['doctor'], appointment['pin'])
         try:
             cursor.execute(sql, vals)
             if file:
@@ -87,6 +87,16 @@ def get_id_file(session_id: str, appointment_id: int):
     else:
         print("appointment id and session id do not match")
         return None
+
+
+def get_info(id, pin):
+    connector = get_connector()
+    cursor = connector.cursor()
+    sql = "SELECT extra_info FROM user_database.appointments WHERE appointment_id = %s AND pin = %s"
+    vals = (id, pin)
+    cursor.execute(sql, vals)
+    result = cursor.fetchone()
+    return result[0] if result else None
 
 
 def get_card_format(result):
