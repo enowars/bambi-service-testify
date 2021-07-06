@@ -1,5 +1,3 @@
-
-
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get -y install mariadb-client
