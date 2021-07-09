@@ -48,7 +48,7 @@ class testifyChecker(BaseChecker):
     ##### EDIT YOUR CHECKER PARAMETERS
     flag_variants = 2
     noise_variants = 1
-    havoc_variants = 6
+    havoc_variants = 7
     exploit_variants = 2
     service_name = "testify"
     port = 8597  # The port will automatically be picked up as default by self.connect and self.http.
@@ -289,6 +289,15 @@ class testifyChecker(BaseChecker):
             }
             res = self.http_post('/appointment_info', **kwargs)
             assert_in(info, res.text, f"could not receive placed info {info} from appointment_info")
+        elif self.variant_id == 6:
+            # test doctors page
+            profile = get_profile()
+            self.register(profile['username'], profile['password'])
+            kwargs = {'data': {'patient_username': profile['username']},
+                      'allow_redirects': True}
+            text = self.http_post('/doctors', **kwargs).text
+            print(text)
+            assert_in('not authenticated!', text, '/doctors endpoint not working!')
         else:
             raise EnoException("Wrong variant_id provided")
 
