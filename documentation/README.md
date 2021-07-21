@@ -1,5 +1,44 @@
-Testify Service documentation
+<ins>Testify Service documentation
 ======================
+# <ins>Basic functionality
+
+The Homepage of Testify briefly informs you about the basic concept of this service. 
+After the user is registered/logged in, he is able to make COVID-19 rapid test appointments.
+The registration can be done directly from the Homepage using the `Signup` Button in the Login Section.
+After a successful login, the user gets redirected _Appointments_ page.
+
+### Appointments-Section [ <ins>/appointments]
+To make an appointment, a bunch of fields need to be filled. While most of the input is self-explanatory, the user also has
+to choose one of the 5 doctors and can provide an _extra info_ (Flagstore #2) for the doctor. The user also sets an Appointment PIN
+which is needed to view the _extra information_ (needed for checker getflag). This Appointment PIN is mandatory as the _extra info_
+cannot be viewed by simply logging in with the user credentials because this would mix up the two Flagstores. Lastly, the user
+can upload an optional file for identity verification purposes (important for Flagstore #1 and VULN #1). After all necessary fields
+have been submitted, the appointment is made and a success notification with the just created appointment ID is displayed.
+The user will also be able to see all his previously created appointments right below the appointment form (important for
+Flagstore #1). This functionality is havoc'd.
+
+### Appointment-Info [ <ins>/appointment_info]
+As mentioned in the previuos paragraph, the user (and checker) can retrieve the given _appointment extra info_ using the 
+generated appointment ID and the chosen Appointment PIN. This can be done by simply submitting both values to the `/appointment_info` page.
+This functionality is havoc'd.
+
+### Restore Username [ <ins>/restore_username]
+If the user has forgotten his username, he is able to submit his email address to the `/restore_username` page and his
+username will be returned. This is a on-top function which is not needed for the basic usage or any of the flagstores but is
+still havoc'd.
+
+### About Page [ <ins>/about]
+The about page simply displays the last 1000 users of the DB ordered by the most recently created ones. They are separated by a ` - `.
+The user list is created by a mysqldump-call on the DB using a low-privileged user creating a `dump.sql` file every time the 
+`/about` page is loaded. The dump command however, excludes the doctors as this would lead to a mix of both flagstores.
+The frontend simply reads the users from the file. This functionality is havoc'd.
+
+### Doctor's Page [ <ins>/doctors]
+The doctor's page is the entrypoint users that are also doctors. This page can only be viewed if the user that is currently logged
+in is a doctor otherwise one is immediately redirected to the homepage without an error message. When authenticated as a doctor,
+one is able to simply submit the username of any user and the frontend will return a list of the users appointments containing a
+column for the chosen doctor and the _extra info_ (important for Flagstore #2). This functionality is havoc'd.
+
 
 # <ins>Vulnerabilities (3)
 
@@ -85,7 +124,7 @@ Two different exploits for VULN#1 and VULN#2 need to be run after each other to 
 
 ## VULN #3 :
 
-1. Create appointment with a new user while stating this user as the doctor in the make_appointment form (using POST-request)
+1. Create appointment with a new user while stating this newly created user as the doctor in the make_appointment form (using POST-request)
 2. Access the `/doctors` page to retrieve the info for the users returned by `/about` page 
 
 ### Code
