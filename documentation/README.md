@@ -146,3 +146,77 @@ Two different exploits for VULN#1 and VULN#2 need to be run after each other to 
         if flag := self.search_flag(pot_flag.text):
             return flag
 ```
+
+
+# <ins>Fixes
+
+## VULN #1 :
+The fix for VULN #1 simply consits of adding the `/ids` path to the checking path in the `get_path` function. This does not
+allow the attacker to store/retrieve any data outside the `/ids` directory. The attacker could still overwrite files from other users
+this however does not grant him access to the flagstore.
+
+### Fix:
+```
+diff --git a/service/App/src/appointments_manager.py b/service/App/src/appointments_manager.py
+--- a/service/App/src/appointments_manager.py
++++ b/service/App/src/appointments_manager.py
+@@ -65,7 +65,7 @@
+ 
+ def get_path(path: str):
+     if path:
+-        basedir = os.path.abspath("user_data/")
++        basedir = os.path.abspath("user_data/ids")
+         path_comp = 'user_data/ids/' + path
+         matchpath = os.path.abspath(path_comp)
+         if matchpath.startswith(basedir) and basedir == os.path.commonpath((basedir, matchpath)):
+         
+         
+```
+
+## VULN #2 :
+The fix for VULN #2 is done by skipping the check of non-ascii characters in the password causing the hash-function
+to be executed everytime and not only when no non-ascii characters are found in the password submitted by the user.
+
+### Fix:
+```
+diff --git a/service/App/src/userDBConnecter.py b/service/App/src/userDBConnecter.py
+--- a/service/App/src/userDBConnecter.py
++++ b/service/App/src/userDBConnecter.py
+@@ -51,11 +51,7 @@
+ 
+ 
+ def get_hash(string, salt):
+-    if isValid(string):
+-        return hashlib.pbkdf2_hmac('sha256', string, salt, 100000)
+-    else:
+-        return string
+-
++    return hashlib.pbkdf2_hmac('sha256', string, salt, 100000)
+ 
+ def isValid(password) -> bool:
+     try:
+
+```
+
+## VULN #3 :
+To fix VULN #3 one has to remove the second if condition from the SQL Query checking the doctors. The query needs to be
+modified so that only the `is_doctor` field is checked and not whether the user has any assigned appointments. Alternatively,
+one could also check whether the submitted doctor in the `make_appointment` function is a valid doctor _(doctor01, ..., doctor05)_.
+
+### Fix:
+```
+diff --git a/service/App/src/doctor.py b/service/App/src/doctor.py
+--- a/service/App/src/doctor.py
++++ b/service/App/src/doctor.py
+@@ -16,9 +16,7 @@
+ def check_doctor(username: str) -> bool:
+     connector = get_connector()
+     cursor = connector.cursor()
+-    cursor.execute("SELECT IF ((SELECT is_doctor FROM user_database.users WHERE username = %s) OR (SELECT "
+-                   "EXISTS(SELECT * FROM user_database.appointments WHERE user_database.appointments.doctor = "
+-                   "%s)), 1, 0)", (username, username))
++    cursor.execute("SELECT is_doctor FROM user_database.users WHERE username = %s", (username,))
+     res = cursor.fetchone()
+     return True if res[0] == 1 else False
+
+```
