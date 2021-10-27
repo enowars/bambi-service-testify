@@ -6,7 +6,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8597:8000"
-    container_name: testify
   testify-mysql:
     build:
       context: mysql

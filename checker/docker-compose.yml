@@ -3,7 +3,7 @@ services:
   testify-checker:
     build: .
     ports:
-      - 2597:3031
+      - 3002:3031
     environment:
      - MONGO_ENABLED=1
      - MONGO_HOST=testify-mongo
