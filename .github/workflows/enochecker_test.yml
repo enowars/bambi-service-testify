@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ENOCHECKER_TEST_CHECKER_ADDRESS: localhost
-      ENOCHECKER_TEST_CHECKER_PORT: 2597
+      ENOCHECKER_TEST_CHECKER_PORT: 3002
 
     steps:
       - uses: enowars/action-cleanup-runner@v1
