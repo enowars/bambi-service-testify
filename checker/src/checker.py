@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
-import base64
-import logging
-import re
+
+import base64, faker, logging, os, random, re, string, time
 
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import assert_in
-import random
-import string
-from faker import Faker
 
-fake = Faker()
+logging.getLogger('faker').setLevel(logging.ERROR)
 
 
 def get_profile():
-    logging.getLogger('faker').setLevel(logging.ERROR)
+    random.seed(os.urandom(32))
+    fake = faker.Faker()
     profile = fake.simple_profile()
+    alphabet = string.ascii_letters + string.digits
+    suffix = "".join([random.choice(alphabet) for i in range(10)])
     return {
-        'username': profile['username'] + str(random.randint(1000, 9999)),
+        'username': profile['username'] + suffix,
         'password': get_random_string(),
         'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],

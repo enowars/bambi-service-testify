@@ -8,10 +8,8 @@ def get_online_users():
         'username not like \'doctor%\' order by user_id DESC limit 1000" > user_data/online_users/dump.sql',
         shell=True).wait()
     try:
-        f = open("user_data/online_users/dump.sql", "r")
-        sql = f.readlines()
-        f.close()
-        users = [i.split(',')[1] for i in sql]
+        with open("user_data/online_users/dump.sql", "r") as f:
+            users = [l.split(',')[1] for l in f.readlines()]
         return users
     except FileNotFoundError:
         return []

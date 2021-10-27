@@ -63,3 +63,4 @@ def isValid(password) -> bool:
     except UnicodeError as e:
         return False
     return all(32 < ord(c) < 127 for c in pw)
+
