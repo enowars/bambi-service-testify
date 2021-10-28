@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import base64, faker, logging, os, random, re, string, time
+import base64, faker, logging, random, re, secrets, string, time
 
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import assert_in
@@ -8,39 +8,26 @@ from enochecker.utils import assert_in
 logging.getLogger('faker').setLevel(logging.ERROR)
 
 
-def get_profile():
-    random.seed(os.urandom(32))
-    fake = faker.Faker()
-    profile = fake.simple_profile()
+def get_random_string(n):
     alphabet = string.ascii_letters + string.digits
-    suffix = "".join([random.choice(alphabet) for i in range(10)])
+    return "".join([secrets.choice(alphabet) for i in range(n)])
+
+
+def get_profile():
+    fake = faker.Faker()
+    fake.seed_instance(secrets.randbits(256))
+    profile = fake.simple_profile()
     return {
-        'username': profile['username'] + suffix,
-        'password': get_random_string(),
+        'username': profile['username'] + get_random_string(20),
+        'password': get_random_string(30),
         'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],
         'date': profile['birthdate'].strftime('%Y-%m-%d'),
         'time': fake.time(pattern='%H:%M'),
         'file': fake.text(),
         'filename': fake.file_name(category="image"),
-        'pin': get_random_string()
+        'pin': get_random_string(30)
     }
-
-
-def get_random_string():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=30))
-
-
-def tuple_string_to_list(test_str):
-    res = []
-    temp = []
-    for token in test_str.split(","):
-        num = str(token.replace("(", "").replace(")", ""))
-        temp.append(num)
-        if ")" in token:
-            res.append(tuple(temp))
-            temp = []
-    return res
 
 
 class testifyChecker(BaseChecker):
@@ -226,7 +213,8 @@ class testifyChecker(BaseChecker):
             assert_in(profile['date'], resp.text, "Resulting date was found to be incorrect")
             assert_in(profile['time'], resp.text, "Resulting time found to be incorrect")
             resp = self.http_get('/get_id' + str(app_id))
-            assert_in(profile['file'], resp.content.decode('utf-8'), "Resulting file found to be incorrect")
+            assert_in(profile['file'], resp.text, "Resulting file found to be incorrect\n"
+                + f"{resp.text!r}\n=== VS ===\n{profile['file']!r}")
         else:
             raise EnoException("Wrong variant_id provided")
 
@@ -276,7 +264,7 @@ class testifyChecker(BaseChecker):
         elif self.variant_id == 5:
             # test appointment info endpoint
             profile = get_profile()
-            info = get_random_string()
+            info = get_random_string(30)
             self.register(profile['username'], profile['password'])
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
                                   profile['date'], profile['time'], profile['file'],
