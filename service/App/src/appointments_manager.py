@@ -25,14 +25,14 @@ def set_appointment(connector, session_id: str, appointment, file) -> int:
         cursor = connector.cursor()
         sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename, doctor, pin) " \
               "VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        appointment['filename'] = appointment['filename'].replace('/', '')
-        if ".." in appointment['filename']:
-            appointment['filename'] = appointment['filename'].split("..")[-1]
+        filename = appointment['filename'].replace('/', '')
+        if ".." in filename:
+            filename = filename.split("..")[-1]
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
-                appointment['time'], appointment['filename'], appointment['doctor'], appointment['pin'])
+                appointment['time'], filename, appointment['doctor'], appointment['pin'])
         try:
             cursor.execute(sql, vals)
-            path = "userdata/" + secure_filename(appointment['filename'])
+            path = "userdata/" + secure_filename(filename)
             if file and not os.path.exists(path):
                 file.save(path)
             connector.commit()

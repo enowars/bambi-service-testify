@@ -17,6 +17,8 @@ def new_connector():
     return mydb
 
 def create_user(connector, username: str, password: bytes, email: str) -> bool:
+    if " " in username:
+        return False
     salt = os.urandom(32)
     key = get_hash(password, salt)
     cursor = connector.cursor()

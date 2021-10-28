@@ -32,17 +32,18 @@ def make_appointment():
     appointment_id = None
 
     if session_id and prename and lastname and date and time and doctor and pin:
-        prefix = "".join([secrets.choice(string.ascii_letters + string.digits) for i in range(30)])
+        connector = db.new_connector()
+        username = sm.get_user_name_for_session(connector, session_id)
         appointment = {
             'name': prename + ' ' + lastname,
             'extra_info': extra if extra else '',
             'date': date,
             'time': time,
-            'filename': prefix + '-' + file.filename if file else "",
+            'filename': username + '-' + file.filename if file else "",
             'doctor': doctor,
             'pin': pin
         }
-        appointment_id = am.set_appointment(db.new_connector(), session_id, appointment, file)
+        appointment_id = am.set_appointment(connector, session_id, appointment, file)
 
     if appointment_id:
         return redirect(url_for('appointments', app_id=appointment_id, status='success'))
@@ -175,8 +176,7 @@ def restore_username_POST():
 def get_id(appointment_id):
     session_id = request.cookies.get('sessionID')
     if session_id and appointment_id:
-        path = am.get_id_file(db.new_connector(), session_id, appointment_id)
-        if path:
+        if path := am.get_id_file(db.new_connector(), session_id, appointment_id):
             return send_file(path, as_attachment=True)
     return "session and appointment id do not match or no ID uploaded!", 403
 
