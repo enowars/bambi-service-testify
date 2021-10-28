@@ -4,23 +4,11 @@ import uuid
 hostname = "testify-mysql"
 
 
-def get_connector():
-    global hostname
-    mydb = mysql.connector.connect(
-        host=hostname,
-        user="root",
-        password="root",
-        use_pure=True
-    )
-    return mydb
-
-
 def get_new_session_id():
     return uuid.uuid4()
 
 
-def check_session_id(session_id):
-    connector = get_connector()
+def check_session_id(connector, session_id):
     cursor = connector.cursor()
     sql = "SELECT * FROM user_database.sessions WHERE session_id = %s"
     vals = (session_id,)
@@ -29,8 +17,7 @@ def check_session_id(session_id):
     return True if result else False
 
 
-def delete_session(session_id):
-    connector = get_connector()
+def delete_session(connector, session_id):
     cursor = connector.cursor()
     sql = "DELETE FROM user_database.sessions WHERE session_id = %s"
     vals = (session_id,)
@@ -41,11 +28,10 @@ def delete_session(session_id):
         print('session to delete not found: {}'.format(err))
 
 
-def create_session(username: str) -> uuid:
-    user_id = get_user_id_for_username(username)
+def create_session(connector, username: str) -> uuid:
+    user_id = get_user_id_for_username(connector, username)
     if user_id != -1:
         uu = get_new_session_id()
-        connector = get_connector()
         cursor = connector.cursor()
         sql = "INSERT INTO user_database.sessions(session_id, user_id) VALUES (%s, %s)"
         vals = (str(uu), user_id)
@@ -59,8 +45,7 @@ def create_session(username: str) -> uuid:
     return -1
 
 
-def get_user_id_for_username(username: str) -> int:
-    connector = get_connector()
+def get_user_id_for_username(connector, username: str) -> int:
     cursor = connector.cursor()
     sql = "SELECT user_database.users.user_id FROM user_database.users WHERE username = %s"
     vals = (username,)
@@ -73,8 +58,7 @@ def get_user_id_for_username(username: str) -> int:
         return result[0]
 
 
-def get_user_name_for_session(session_id):
-    connector = get_connector()
+def get_user_name_for_session(connector, session_id):
     cursor = connector.cursor()
     sql = "SELECT user_database.users.username FROM user_database.users JOIN user_database.sessions s on users.user_id = s.user_id WHERE s.session_id = %s"
     vals = (session_id,)

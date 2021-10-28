@@ -3,19 +3,7 @@ import mysql.connector
 hostname = "testify-mysql"
 
 
-def get_connector():
-    global hostname
-    mydb = mysql.connector.connect(
-        host=hostname,
-        user="usertable_user",
-        password="userpass",
-        use_pure=True
-    )
-    return mydb
-
-
-def get_username_for_email(email: str) -> str:
-    connector = get_connector()
+def get_username_for_email(connector, email: str) -> str:
     cursor = connector.cursor()
     sql = 'SELECT u.username FROM user_database.users u WHERE u.email = %s'
     vals = (email,)

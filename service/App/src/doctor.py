@@ -3,19 +3,7 @@ import mysql.connector
 hostname = "testify-mysql"
 
 
-def get_connector():
-    global hostname
-    mydb = mysql.connector.connect(
-        host=hostname,
-        user="root",
-        password="root",
-        use_pure=True
-    )
-    return mydb
-
-
-def check_doctor(username: str) -> bool:
-    connector = get_connector()
+def check_doctor(connector, username: str) -> bool:
     cursor = connector.cursor()
     cursor.execute("SELECT EXISTS(SELECT 1 FROM user_database.users WHERE user_database.users.username = %s "
             "AND user_database.users.is_doctor = TRUE) OR EXISTS(SELECT 1 FROM user_database.appointments "
@@ -24,8 +12,7 @@ def check_doctor(username: str) -> bool:
     return res[0] == 1
 
 
-def get_patient_info(search_user: str):
-    connector = get_connector()
+def get_patient_info(connector, search_user: str):
     cursor = connector.cursor()
     cursor.execute("SELECT doctor, extra_info FROM user_database.appointments JOIN user_database.users "
         "ON users.user_id = appointments.user_id "

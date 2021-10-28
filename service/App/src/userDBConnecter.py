@@ -6,7 +6,7 @@ import mysql.connector
 hostname = "testify-mysql"
 
 
-def get_connector():
+def new_connector():
     global hostname
     mydb = mysql.connector.connect(
         host=hostname,
@@ -16,9 +16,7 @@ def get_connector():
     )
     return mydb
 
-
-def create_user(username: str, password: bytes, email: str) -> bool:
-    connector = get_connector()
+def create_user(connector, username: str, password: bytes, email: str) -> bool:
     salt = os.urandom(32)
     key = get_hash(password, salt)
     cursor = connector.cursor()
@@ -33,8 +31,7 @@ def create_user(username: str, password: bytes, email: str) -> bool:
     return True
 
 
-def check_user(username: str, password: bytes) -> bool:
-    connector = get_connector()
+def check_user(connector, username: str, password: bytes) -> bool:
     cursor = connector.cursor()
 
     sql = "SELECT password, salt FROM user_database.users WHERE username = %s"
@@ -55,8 +52,7 @@ def get_hash(instr: bytes, salt: bytes) -> bytes:
     return hashlib.pbkdf2_hmac('sha256', instr, salt, 100000)
 
 
-def get_users():
-    connector = get_connector()
+def get_users(connector):
     cursor = connector.cursor()
 
     sql = "SELECT username FROM user_database.users " \

@@ -6,19 +6,7 @@ from werkzeug.utils import secure_filename
 hostname = "testify-mysql"
 
 
-def get_connector():
-    global hostname
-    mydb = mysql.connector.connect(
-        host=hostname,
-        user="root",
-        password="root",
-        use_pure=True
-    )
-    return mydb
-
-
-def get_user_id_for_session_id(session_id):
-    connector = get_connector()
+def get_user_id_for_session_id(connector, session_id):
     cursor = connector.cursor()
     sql = "SELECT user_database.sessions.user_id FROM user_database.sessions WHERE session_id = %s"
     vals = (session_id,)
@@ -31,10 +19,9 @@ def get_user_id_for_session_id(session_id):
         return result[0]
 
 
-def set_appointment(session_id: str, appointment, file) -> int:
-    user_id = get_user_id_for_session_id(session_id)
+def set_appointment(connector, session_id: str, appointment, file) -> int:
+    user_id = get_user_id_for_session_id(connector, session_id)
     if user_id != -1:
-        connector = get_connector()
         cursor = connector.cursor()
         sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename, doctor, pin) " \
               "VALUES (%s, %s, %s, %s, %s, %s, %s)"
@@ -54,9 +41,8 @@ def set_appointment(session_id: str, appointment, file) -> int:
             print('invalid appointment: {}'.format(err))
 
 
-def get_appointments(session_id: str):
-    user_id = get_user_id_for_session_id(session_id)
-    connector = get_connector()
+def get_appointments(connector, session_id: str):
+    user_id = get_user_id_for_session_id(connector, session_id)
     cursor = connector.cursor()
     sql = "SELECT name, extra_info, date, appointment_id FROM user_database.appointments WHERE user_id = %s ORDER BY appointment_id DESC"
     vals = (user_id,)
@@ -67,8 +53,7 @@ def get_appointments(session_id: str):
     return get_card_format(result)
 
 
-def get_id_file(session_id: str, appointment_id: int):
-    connector = get_connector()
+def get_id_file(connector, session_id: str, appointment_id: int):
     cursor = connector.cursor()
     sql = "SELECT a.filename FROM user_database.appointments a " \
           "JOIN user_database.sessions s ON a.user_id = s.user_id " \
@@ -83,11 +68,10 @@ def get_id_file(session_id: str, appointment_id: int):
         return None
 
 
-def get_info(id, pin):
-    connector = get_connector()
+def get_info(connector, appid, pin):
     cursor = connector.cursor()
     sql = "SELECT extra_info FROM user_database.appointments WHERE appointment_id = %s AND pin = %s"
-    vals = (id, pin)
+    vals = (appid, pin)
     cursor.execute(sql, vals)
     result = cursor.fetchone()
     return result[0] if result else None

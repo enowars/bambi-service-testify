@@ -42,7 +42,7 @@ def make_appointment():
             'doctor': doctor,
             'pin': pin
         }
-        appointment_id = am.set_appointment(session_id, appointment, file)
+        appointment_id = am.set_appointment(db.new_connector(), session_id, appointment, file)
 
     if appointment_id:
         return redirect(url_for('appointments', app_id=appointment_id, status='success'))
@@ -58,9 +58,10 @@ def doctors():
     if request.method == 'POST':
         username = request.form.get('patient_username')
         session_id = request.cookies.get('sessionID')
-        auth_user = sm.get_user_name_for_session(session_id)
-        if auth_user and doctor.check_doctor(auth_user):
-            return render_template('doctors.html', apps=doctor.get_patient_info(username))
+        connector = db.new_connector()
+        auth_user = sm.get_user_name_for_session(connector, session_id)
+        if auth_user and doctor.check_doctor(connector, auth_user):
+            return render_template('doctors.html', apps=doctor.get_patient_info(connector, username))
         else:
             return "not authenticated!"
     else:
@@ -76,10 +77,11 @@ def login():
     email = request.form.get('email')
 
     if username and password and login_type:
+        connector = db.new_connector()
         if login_type == 'signin':
-            if db.check_user(username, base64.b64decode(str(password))):
+            if db.check_user(connector, username, base64.b64decode(str(password))):
                 resp = make_response(redirect(url_for('appointments')))
-                session_id = sm.create_session(username)
+                session_id = sm.create_session(connector, username)
                 resp.set_cookie('sessionID', str(session_id))
                 resp.set_cookie('username', bleach.clean(username))
                 return resp, 302
@@ -87,9 +89,9 @@ def login():
                 return render_template('index.html', inserts=['login_warning.html']), 401
         elif login_type == 'signup':
             if email:
-                if db.create_user(username, base64.b64decode(str(password)), email):
+                if db.create_user(connector, username, base64.b64decode(str(password)), email):
                     resp = make_response(redirect(url_for('appointments')))
-                    session_id = sm.create_session(username)
+                    session_id = sm.create_session(connector, username)
                     resp.set_cookie('sessionID', str(session_id))
                     resp.set_cookie('username', bleach.clean(username))
                     return resp, 302
@@ -103,8 +105,9 @@ def appointments():
     session_id = request.cookies.get('sessionID')
 
     if username and session_id:
-        if sm.check_session_id(session_id):
-            cards = am.get_appointments(session_id)
+        connector = db.new_connector()
+        if sm.check_session_id(connector, session_id):
+            cards = am.get_appointments(connector, session_id)
             inserts, message = None, None
             status = request.args.get('status')
             app_id = request.args.get('app_id')
@@ -121,9 +124,9 @@ def appointments():
 @app.route('/appointment_info', methods=['POST', 'GET'])
 def appointment_info():
     if request.method == 'POST':
-        id = request.form.get('app_id')
+        appid = request.form.get('app_id')
         pin = request.form.get('pin')
-        info = am.get_info(id, pin)
+        info = am.get_info(db.new_connector(), appid, pin)
         if info:
             return render_template('appointment_info.html', inserts=['success.html'], message=f"Your message:   {info}")
         else:
@@ -134,7 +137,7 @@ def appointment_info():
 
 @app.route('/about')
 def about():
-    users = db.get_users()
+    users = db.get_users(db.new_connector())
     return render_template('about.html', online_users=' ' + '  -  '.join(users) + ' ')
 
 
@@ -158,20 +161,21 @@ def restore_username():
 def restore_username_POST():
     email = request.form.get('email')
     if email:
-        username = fu.get_username_for_email(email)
+        connector = db.new_connector()
+        username = fu.get_username_for_email(connector, email)
         if username:
             return render_template('restore_username.html', inserts=['username_success.html'],
-                                   username=fu.get_username_for_email(email))
+                    username=username)
         else:
             return render_template('restore_username.html', inserts=['username_failed.html'],
-                                   email=email)
+                   email=email)
 
 
 @app.route('/get_id<appointment_id>')
 def get_id(appointment_id):
     session_id = request.cookies.get('sessionID')
     if session_id and appointment_id:
-        path = am.get_id_file(session_id, appointment_id)
+        path = am.get_id_file(db.new_connector(), session_id, appointment_id)
         if path:
             return send_file(path, as_attachment=True)
     return "session and appointment id do not match or no ID uploaded!", 403
