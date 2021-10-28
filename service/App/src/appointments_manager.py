@@ -11,7 +11,8 @@ def get_connector():
     mydb = mysql.connector.connect(
         host=hostname,
         user="root",
-        password="root"
+        password="root",
+        use_pure=True
     )
     return mydb
 
@@ -37,13 +38,16 @@ def set_appointment(session_id: str, appointment, file) -> int:
         cursor = connector.cursor()
         sql = "INSERT INTO user_database.appointments(user_id, name, extra_info, date, filename, doctor, pin) " \
               "VALUES (%s, %s, %s, %s, %s, %s, %s)"
-        path = get_path(appointment['filename']) if file else None
+        appointment['filename'] = appointment['filename'].replace('/', '')
+        if ".." in appointment['filename']:
+            appointment['filename'] = appointment['filename'].split("..")[-1]
         vals = (user_id, appointment['name'], appointment['extra_info'], appointment['date'] + ' ' +
-                appointment['time'], path, appointment['doctor'], appointment['pin'])
+                appointment['time'], appointment['filename'], appointment['doctor'], appointment['pin'])
         try:
             cursor.execute(sql, vals)
-            if file:
-                file.save('user_data/ids/' + secure_filename(appointment['filename']))
+            path = "userdata/" + secure_filename(appointment['filename'])
+            if file and not os.path.exists(path):
+                file.save(path)
             connector.commit()
             return cursor.lastrowid
         except mysql.connector.Error as err:
@@ -63,16 +67,6 @@ def get_appointments(session_id: str):
     return get_card_format(result)
 
 
-def get_path(path: str):
-    if path:
-        basedir = os.path.abspath("user_data/")
-        path_comp = 'user_data/' + 'ids/' + path
-        matchpath = os.path.abspath(path_comp)
-        if matchpath.startswith(basedir) and basedir == os.path.commonpath((basedir, matchpath)):
-            return os.path.abspath('user_data/ids/' + path).replace(' ', '_')
-    return None
-
-
 def get_id_file(session_id: str, appointment_id: int):
     connector = get_connector()
     cursor = connector.cursor()
@@ -83,7 +77,7 @@ def get_id_file(session_id: str, appointment_id: int):
     cursor.execute(sql, vals)
     result = cursor.fetchone()
     if result:
-        return result[0]
+        return "userdata/" + result[0]
     else:
         print("appointment id and session id do not match")
         return None

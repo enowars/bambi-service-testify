@@ -23,8 +23,8 @@ CREATE TABLE appointments (
 	name VARCHAR(100) NOT NULL,
 	extra_info VARCHAR(500),
 	date DATETIME NOT NULL,
-	filename VARCHAR(128),
-	doctor VARCHAR(256),
+	filename VARCHAR(256),
+	doctor VARCHAR(256) NOT NULL,
 	pin VARCHAR(30) NOT NULL,
 	PRIMARY KEY (appointment_id),
 	CONSTRAINT fk_appointments_user_id FOREIGN KEY (user_id) REFERENCES users(user_id)

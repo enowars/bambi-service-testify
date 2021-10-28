@@ -1,15 +1,13 @@
 version: '3'
 services:
   testify:
-    build:
-      context: App
-      dockerfile: Dockerfile
+    build: App
+    volumes:
+      - ./userdata:/App/src/userdata
     ports:
       - "8597:8000"
   testify-mysql:
-    build:
-      context: mysql
-      dockerfile: Dockerfile
+    build: mysql
     volumes:
       - ./data/db:/var/lib/mysql
     cap_add:

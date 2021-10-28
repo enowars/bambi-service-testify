@@ -12,6 +12,7 @@ def get_connector():
         host=hostname,
         user="root",
         password="root",
+        use_pure=True
     )
     return mydb
 
@@ -50,17 +51,18 @@ def check_user(username: str, password: bytes) -> bool:
     return True if hash_comp == hash_db else False
 
 
-def get_hash(string, salt):
-    if isValid(string):
-        return hashlib.pbkdf2_hmac('sha256', string, salt, 100000)
-    else:
-        return string
+def get_hash(instr: bytes, salt: bytes) -> bytes:
+    return hashlib.pbkdf2_hmac('sha256', instr, salt, 100000)
 
 
-def isValid(password) -> bool:
-    try:
-        pw = password.decode('utf-8')
-    except UnicodeError as e:
-        return False
-    return all(32 < ord(c) < 127 for c in pw)
+def get_users():
+    connector = get_connector()
+    cursor = connector.cursor()
+
+    sql = "SELECT username FROM user_database.users " \
+        "WHERE username NOT LIKE 'doctor0_' ORDER BY user_id DESC LIMIT 2000"
+    cursor.execute(sql, ())
+    users = [row[0] for row in cursor.fetchall()]
+
+    return users
 

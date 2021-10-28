@@ -9,6 +9,7 @@ def get_connector():
         host=hostname,
         user="usertable_user",
         password="userpass",
+        use_pure=True
     )
     return mydb
 

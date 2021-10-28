@@ -5,6 +5,8 @@ import base64, faker, logging, random, re, secrets, string, time
 from enochecker import BaseChecker, BrokenServiceException, EnoException, run
 from enochecker.utils import assert_in
 
+from bs4 import BeautifulSoup
+
 logging.getLogger('faker').setLevel(logging.ERROR)
 
 
@@ -18,14 +20,14 @@ def get_profile():
     fake.seed_instance(secrets.randbits(256))
     profile = fake.simple_profile()
     return {
-        'username': profile['username'] + get_random_string(20),
+        'username': profile['username'] + get_random_string(30),
         'password': get_random_string(30),
         'prename': profile['name'].split()[0],
         'lastname': profile['name'].split()[-1],
         'date': profile['birthdate'].strftime('%Y-%m-%d'),
         'time': fake.time(pattern='%H:%M'),
         'file': fake.text(),
-        'filename': fake.file_name(category="image"),
+        'filename': "badge.png",
         'pin': get_random_string(30)
     }
 
@@ -108,7 +110,7 @@ class testifyChecker(BaseChecker):
         else:
             raise BrokenServiceException('could not get appointment id')
 
-    def get_appointment(self, session_id, username='testuser'):
+    def get_appointment(self, session_id):
         kwargs = {
             'allow_redirects': True
         }
@@ -119,9 +121,9 @@ class testifyChecker(BaseChecker):
         if self.variant_id == 0:
             profile = get_profile()
             self.register(profile['username'], profile['password'])
-            appointment_id = self.make_appointment(self.flag, profile['lastname'], profile['filename'], profile['date'],
-                                                   profile['time'], profile['file'],
-                                                   'doctor0' + str(random.randint(1, 5)), profile['pin'])
+            appointment_id = self.make_appointment(self.flag,
+                profile['lastname'], profile['filename'], profile['date'], profile['time'],
+                profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
 
             # store in db
             self.chain_db = {
@@ -133,9 +135,9 @@ class testifyChecker(BaseChecker):
         elif self.variant_id == 1:
             profile = get_profile()
             self.register(profile['username'], profile['password'])
-            appointment_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
-                                                   profile['date'],
-                                                   profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'], self.flag)
+            appointment_id = self.make_appointment(profile['prename'], profile['lastname'],
+                profile['filename'], profile['date'], profile['time'], profile['file'],
+                'doctor0' + str(random.randint(1, 5)), profile['pin'], self.flag)
 
             # store in db
             self.chain_db = {
@@ -174,7 +176,6 @@ class testifyChecker(BaseChecker):
                 'allow_redirects': True
             }
             res = self.http_post('/appointment_info', **kwargs)
-            print(res.text)
             if res.text.find('Your message') == -1:
                 raise BrokenServiceException("could not retrieve appointment info")
             assert_in(self.flag, res.text, "Resulting flag was found to be incorrect")
@@ -205,6 +206,7 @@ class testifyChecker(BaseChecker):
             except Exception as ex:
                 self.debug("Failed to read db {ex}")
                 raise BrokenServiceException("Previous putnoise failed.")
+
             session_id = self.login(profile['username'], profile['password'])
             resp = self.get_appointment(session_id)
 
@@ -213,8 +215,7 @@ class testifyChecker(BaseChecker):
             assert_in(profile['date'], resp.text, "Resulting date was found to be incorrect")
             assert_in(profile['time'], resp.text, "Resulting time found to be incorrect")
             resp = self.http_get('/get_id' + str(app_id))
-            assert_in(profile['file'], resp.text, "Resulting file found to be incorrect\n"
-                + f"{resp.text!r}\n=== VS ===\n{profile['file']!r}")
+            assert_in(profile['file'], resp.text, "Resulting file found to be incorrect")
         else:
             raise EnoException("Wrong variant_id provided")
 
@@ -238,8 +239,8 @@ class testifyChecker(BaseChecker):
             self.register(profile1['username'], profile1['password'])
             resp = self.http_get('/about')
             self.debug(resp.text)
-            assert_in("&#39;" + profile1['username'] + "&#39;", resp.text, f'username {profile1["username"]} not '
-                                                                           f'found in online users')
+            assert_in(" " + profile1['username'] + " ", resp.text,
+                    f'username {profile1["username"]} not found in online users')
         elif self.variant_id == 3:
             # test restore username
             profile = get_profile()
@@ -267,8 +268,8 @@ class testifyChecker(BaseChecker):
             info = get_random_string(30)
             self.register(profile['username'], profile['password'])
             app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'],
-                                  profile['date'], profile['time'], profile['file'],
-                                  'doctor0' + str(random.randint(1, 5)), profile['pin'], info)
+                    profile['date'], profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)),
+                    profile['pin'], info)
             kwargs = {
                 'allow_redirects': True,
                 'data': {'app_id': app_id,
@@ -280,10 +281,11 @@ class testifyChecker(BaseChecker):
             # test doctors page
             profile = get_profile()
             self.register(profile['username'], profile['password'])
-            kwargs = {'data': {'patient_username': profile['username']},
-                      'allow_redirects': True}
+            kwargs = {
+                'data': { 'patient_username': profile['username'] },
+                'allow_redirects': True
+            }
             text = self.http_post('/doctors', **kwargs).text
-            print(text)
             assert_in('not authenticated!', text, '/doctors endpoint not working!')
         else:
             raise EnoException("Wrong variant_id provided")
@@ -292,40 +294,7 @@ class testifyChecker(BaseChecker):
         if self.variant_id > 1:
             raise EnoException("Wrong variant_id provided")
         elif self.variant_id == 0:
-            filename = '../online_users/dump.sql'
-            profile = get_profile()
-            username = profile['username']
-            password = profile['password']
 
-            self.register(username, password)
-            self.http_get('/about')
-
-            app_id = self.make_appointment(profile['prename'], profile['lastname'], filename, profile['date'],
-                                           profile['time'], profile['file'], 'doctor0' + str(random.randint(1, 5)), profile['pin'])
-            route = '/get_id' + str(app_id)
-
-            kwargs = {
-                'allow_redirects': True
-            }
-
-            res = self.http_get(route, **kwargs)
-            sql_string = res.content.decode('ascii').splitlines()
-            user_list = [i.split(',')[1:3] for i in sql_string]
-            for i in user_list:
-                elem = i
-                user = elem[0][1:-1]
-                hash = elem[1][2:]
-                kwargs2 = {
-                    'data': {
-                        'username': user,
-                        'password': base64.b64encode(bytes.fromhex(hash)).decode('ascii'),
-                        'login': 'signin'
-                    },
-                    'allow_redirects': True
-                }
-                res = self.http_post('/login', **kwargs2)
-                if flag := self.search_flag(res.text):
-                    return flag
             raise BrokenServiceException("Resulting flag was found to be incorrect")
 
         elif self.variant_id == 1:
@@ -335,21 +304,22 @@ class testifyChecker(BaseChecker):
 
             self.register(username, password)
 
-            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'], profile['date']
-                                           , profile['time'], profile['file'], username, profile['pin'])
+            app_id = self.make_appointment(profile['prename'], profile['lastname'], profile['filename'], profile['date'],
+                    profile['time'], profile['file'], username, profile['pin'])
 
             text = self.http_get('/about').text
-            splits = text[text.find('onlineUsers'):].split('&#39;')
-            splits = splits[1:]
-            del splits[1::2]
-            for s in splits:
-                kwargs = {'data': {'patient_username': s},
-                          'allow_redirects': True}
-                pot_flag = self.http_post('/doctors', **kwargs)
-
-                if flag := self.search_flag(pot_flag.text):
+            soup = BeautifulSoup(text, "html.parser")
+            users = soup.select_one("#onlineUsers > div").text.strip().split("  -  ")
+            for u in users:
+                kwargs = {
+                    'data': { 'patient_username': u },
+                    'allow_redirects': True
+                }
+                resp = self.http_post('/doctors', **kwargs).text
+                if flag := self.search_flag(resp):
                     return flag
-            raise BrokenServiceException('could not get appointment id')
+
+            raise BrokenServiceException('Could not find flag in doctor note')
 
 
 app = testifyChecker.service  # This can be used for uswgi.

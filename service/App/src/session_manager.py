@@ -10,6 +10,7 @@ def get_connector():
         host=hostname,
         user="root",
         password="root",
+        use_pure=True
     )
     return mydb
 

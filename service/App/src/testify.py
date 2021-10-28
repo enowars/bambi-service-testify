@@ -5,8 +5,9 @@ import appointments_manager as am
 import forgotUsername as fu
 import base64
 import bleach
-import online_users as ou
 import doctor
+import secrets
+import string
 
 app = Flask(__name__)
 
@@ -31,16 +32,18 @@ def make_appointment():
     appointment_id = None
 
     if session_id and prename and lastname and date and time and doctor and pin:
+        prefix = "".join([secrets.choice(string.ascii_letters + string.digits) for i in range(30)])
         appointment = {
             'name': prename + ' ' + lastname,
             'extra_info': extra if extra else '',
             'date': date,
             'time': time,
-            'filename': file.filename if file else None,
+            'filename': prefix + '-' + file.filename if file else "",
             'doctor': doctor,
             'pin': pin
         }
         appointment_id = am.set_appointment(session_id, appointment, file)
+
     if appointment_id:
         return redirect(url_for('appointments', app_id=appointment_id, status='success'))
     else:
@@ -74,7 +77,7 @@ def login():
 
     if username and password and login_type:
         if login_type == 'signin':
-            if db.check_user(username, base64.b64decode(str(password).encode('ascii'))):
+            if db.check_user(username, base64.b64decode(str(password))):
                 resp = make_response(redirect(url_for('appointments')))
                 session_id = sm.create_session(username)
                 resp.set_cookie('sessionID', str(session_id))
@@ -84,7 +87,7 @@ def login():
                 return render_template('index.html', inserts=['login_warning.html']), 401
         elif login_type == 'signup':
             if email:
-                if db.create_user(username, base64.b64decode(str(password).encode('ascii')), email):
+                if db.create_user(username, base64.b64decode(str(password)), email):
                     resp = make_response(redirect(url_for('appointments')))
                     session_id = sm.create_session(username)
                     resp.set_cookie('sessionID', str(session_id))
@@ -131,8 +134,8 @@ def appointment_info():
 
 @app.route('/about')
 def about():
-    users = ou.get_online_users()
-    return render_template('about.html', online_users='  -  '.join(users))
+    users = db.get_users()
+    return render_template('about.html', online_users=' ' + '  -  '.join(users) + ' ')
 
 
 @app.route('/logout')
