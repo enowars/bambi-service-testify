@@ -243,7 +243,7 @@ class testifyChecker(BaseChecker):
             resp = self.http_get('/about')
             self.debug(resp.text)
             assert_in(" " + profile1['username'] + " ", resp.text,
-                    f'username {profile1["username"]} not found in online users')
+                    f'recently added user not found in online users list')
         elif self.variant_id == 3:
             # test restore username
             profile = get_profile()
@@ -279,7 +279,7 @@ class testifyChecker(BaseChecker):
                          'pin': profile['pin']}
             }
             res = self.http_post('/appointment_info', **kwargs)
-            assert_in(info, res.text, f"could not receive placed info {info} from appointment_info")
+            assert_in(info, res.text, "could not receive placed info from appointment_info")
         elif self.variant_id == 6:
             # test doctors page
             profile = get_profile()

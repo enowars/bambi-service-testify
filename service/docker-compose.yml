@@ -8,7 +8,12 @@ services:
       - "8597:8000"
   testify-mysql:
     build: mysql
+    ulimits:
+      nofile:
+        soft: 20000
+        hard: 40000
     volumes:
       - ./data/db:/var/lib/mysql
+      - ./mysql.cnf:/etc/mysql/my.cnf
     cap_add:
       - SYS_NICE  # CAP_SYS_NICE

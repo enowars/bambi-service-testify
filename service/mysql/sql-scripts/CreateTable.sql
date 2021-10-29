@@ -40,4 +40,3 @@ CREATE EVENT cleaning ON SCHEDULE EVERY 10 MINUTE ENABLE
 	DO DELETE FROM users WHERE users.username NOT LIKE 'doctor0_'
 		AND users.creation_time < CURRENT_TIMESTAMP - INTERVAL 20 MINUTE;
 
-SET GLOBAL max_connections = 1000;
